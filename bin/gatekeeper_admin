@@ -4,9 +4,9 @@ var prompt   = require ('prompt')
   , winston  = require ('winston')
   ;
 
-var Account = require ('../lib/models/account')
+var Account = require ('../app/models/Account')
   , db      = require ('../lib/db')
-  , config  = require ('../config').get ()
+  , config  = require ('../configs').get ()
   ;
 
 var options = {

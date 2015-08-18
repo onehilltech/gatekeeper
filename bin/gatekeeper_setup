@@ -4,9 +4,9 @@ var winston  = require ('winston')
   , argv     = require ('yargs').argv
   ;
 
-var Client  = require ('../lib/models/oauth2/client')
+var Client  = require ('./client')
   , db      = require ('../lib/db')
-  , config  = require ('../config')
+  , config  = require ('../configs')
   ;
 
 const DEFAULT_CLIENT_NAME = "Gatekeeper Webapp";
