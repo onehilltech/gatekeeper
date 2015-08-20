@@ -11,6 +11,7 @@
   "dependencies": {
     "bcrypt": "^0.8.3",
     "blueprint": "git@github.com:onehilltech/blueprint.git",
+    "commander": "^2.8.1",
     "oauth2orize": "git@github.com:jaredhanson/oauth2orize.git#master",
     "passport": "^0.2.x",
     "passport-http-bearer": "^1.x.x",
@@ -34,7 +35,10 @@
     "supertest-session": "^0.0.x"
   },
   "scripts": {
-    "start" : "node ./app.js",
+    "start": "node ./app.js",
     "test": "env NODE_ENV=test mocha --recursive tests/ --reporter spec"
+  },
+  "bin" : {
+    "gatekeeper" : "./bin/gatekeeper"
   }
 }

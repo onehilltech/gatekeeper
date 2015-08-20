@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+'use strict';
+
+var program   = require ('commander')
+  , winston   = require ('winston')
+  , prompt    = require ('prompt')
+  , blueprint = require ('blueprint')
+  ;
+
+var Client = blueprint.models.Client;
+
+program.option ('--debug');
+
+// command: create
+program
+  .command ('create')
+  .description ('create new client')
+  .action (function () {
+    prompt.start ();
+    prompt.get (['name', 'email', 'redirect'], function (err, result) {
+      winston.log ('debug', 'registering new clientGa');
+
+      // Register a new client.
+      Client.registerNewClient (result.name, result.email, result.redirect, 48, function (err, client) {
+        console.log ('client_id: ' + client.id);
+        console.log ('client_secret: ' + client.secret);
+
+        process.exit ();
+      });
+    });
+  });
+
+// command: remove
+program
+  .command ('remove <clientId>')
+  .description ('remove client from the database')
+  .action (function (clientId) {
+    console.log (clientId);
+  
+    Client.remove ({_id : clientId}, function (err) {
+      if (!err)
+        return process.exit ();
+
+      winston.log ('error', err);
+      process.exit (1);
+    });
+  });
+
+// command: enable
+program
+  .command ('enable <clientId> <state>')
+  .description ('enable/disable client access')
+  .action (function (clientId, state) {
+    state = JSON.parse (state.toLowerCase());
+
+    Client.findByIdAndUpdate (clientId, {enabled: state}, function (err) {
+      if (!err)
+        return process.exit ();
+
+      winston.log ('error', err);
+      process.exit (1);
+    });
+  });
+
+blueprint.app.database.connect (function (err) {
+  if (err)
+    return winston.log ('error', err);
+
+  program.parse (process.argv);
+});
