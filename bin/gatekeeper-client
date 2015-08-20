@@ -35,8 +35,7 @@ program
   .command ('remove <clientId>')
   .description ('remove client from the database')
   .action (function (clientId) {
-    console.log (clientId);
-  
+
     Client.remove ({_id : clientId}, function (err) {
       if (!err)
         return process.exit ();
