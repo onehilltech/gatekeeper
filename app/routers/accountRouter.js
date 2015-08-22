@@ -1,6 +1,6 @@
 module.exports = exports = {
-  ':accountId' : 'AccountController@lookupAccountByParam',
-  ':rawAccountId' : 'AccountController@storeParam',
+  ':accountId'    : { action : 'AccountController@lookupAccountByParam' },
+  ':rawAccountId' : { property : 'rawAccountId' },
 
   '/accounts' : {
     get : {action: 'AccountController@getAccounts'},

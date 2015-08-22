@@ -33,17 +33,6 @@ AccountController.prototype.lookupAccountByParam = function (callback) {
   };
 };
 
-AccountController.prototype.storeParam = function (callback) {
-  var self = this;
-
-  return function (req, res, next, accountId) {
-    winston.log ('info', 'lookup account: %s', accountId);
-    req.accountId = accountId;
-
-    return next ();
-  };
-};
-
 /**
  * Get a list of the accounts in the database.
  *
@@ -91,7 +80,7 @@ AccountController.prototype.createAccount = function (callback) {
         password : req.body.password,
         email    : req.body.email,
 
-        creator  : clientId
+        created_by : clientId
       });
 
       account.save (function (err) {
