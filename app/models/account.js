@@ -2,18 +2,31 @@ var bcrypt    = require ('bcrypt')
   , blueprint = require ('blueprint')
   ;
 
+var Client = require ('./Client')
+  ;
+
 const SALT_WORK_FACTOR = 10;
 const DEFAULT_ROLES    = ['user'];
 
 var Schema = blueprint.Schema;
 
 var schema = new Schema ({
+  /// Username for the account.
   username : { type: String, index: true, unique: true, trim: true, required: true },
+
+  /// Encrypted password
   password : { type: String },
+
+  /// Contact email address
   email    : { type: String, index: true, unique: true, trim: true, required: true },
 
-  // Access control fields.
+  /// The client that created the account.
+  created_by : {type: Schema.Types.ObjectId, required: true, ref: Client.modelName},
+
+  /// The account is enable.
   enabled  : { type: Boolean,  default: true },
+
+  /// Roles of the user.
   roles    : { type: [String], default: DEFAULT_ROLES}
 });
 
