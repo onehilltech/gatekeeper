@@ -24,51 +24,12 @@ var schema = new blueprint.Schema({
   roles: {type: [String], default: []}
 });
 
-schema.statics.registerNewClient = function (name, email, redirect_uri, secretLength, done) {
-  if (typeof secretLength === 'function') {
-    done = secretLength;
-    secretLength = undefined;
-  }
+schema.pre ('validate', function (next) {
+  if (!this.isInit ('secret'))
+    this.secret = uid.sync (DEFAULT_SECRET_LENGTH);
 
-  secretLength = secretLength || DEFAULT_SECRET_LENGTH;
-  done = done || function (err, client) { };
-
-  var secret = uid.sync(secretLength);
-  var client = new this({
-    name: name,
-    email: email,
-    secret: secret,
-    redirect_uri: redirect_uri
-  });
-
-  client.save (function (err) {
-    return err ? done(err) : done(null, client);
-  });
-};
-
-schema.statics.upsertClient = function (name, email, redirect_uri, secretLength, done) {
-  if (typeof secretLength === 'function') {
-    done = secretLength;
-    secretLength = undefined;
-  }
-
-  secretLength = secretLength || DEFAULT_SECRET_LENGTH;
-  done = done || function (err, client) {
-    };
-
-  var secret = uid.sync(secretLength);
-  var client = new this({
-    name: name,
-    email: email,
-    secret: secret,
-    redirect_uri: redirect_uri
-  });
-
-  var upsertData = client.toObject();
-  delete upsertData._id;
-
-  this.findOneAndUpdate({name: client.name}, upsertData, {upsert: true, new: true}, done);
-};
+  return next ();
+});
 
 const COLLECTION_NAME = 'gatekeeper_client';
 module.exports = exports = blueprint.model (COLLECTION_NAME, schema);
