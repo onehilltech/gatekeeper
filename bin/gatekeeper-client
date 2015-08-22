@@ -13,19 +13,30 @@ program.option ('--debug');
 
 // command: create
 program
-  .command ('create')
-  .description ('create new client')
+  .command ('add')
+  .description ('add a new client')
   .action (function () {
     prompt.start ();
-    prompt.get (['name', 'email', 'redirect'], function (err, result) {
-      winston.log ('debug', 'registering new clientGa');
+    prompt.get (['name', 'email', 'redirect', 'roles'], function (err, result) {
+      winston.log ('debug', 'adding a new client to the database');
 
-      // Register a new client.
-      Client.registerNewClient (result.name, result.email, result.redirect, 48, function (err, client) {
-        console.log ('client_id: ' + client.id);
-        console.log ('client_secret: ' + client.secret);
+      var client = new Client ({
+        name : result.name,
+        email : result.email,
+        redirect_uri : result.redirect,
+        roles : result.roles.split (',')
+      });
 
-        process.exit ();
+      client.save (function (err, client) {
+        if (err) {
+          winston.log ('error', err.message);
+          process.exit (1);
+        }
+
+        console.log('client_id: ' + client.id);
+        console.log('client_secret: ' + client.secret);
+
+        process.exit();
       });
     });
   });
@@ -61,9 +72,10 @@ program
     });
   });
 
+
 blueprint.app.database.connect (function (err) {
   if (err)
     return winston.log ('error', err);
 
-  program.parse (process.argv);
+  program.parse(process.argv);
 });
