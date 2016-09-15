@@ -75,5 +75,5 @@ exports = module.exports = {
 ```
 
 The router above will protect all routes under the `/v1` path, which
-are all routers located in `app/routers/v1` directory.
+includes all routers located in `app/routers/v1` directory.
 
