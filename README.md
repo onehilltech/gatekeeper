@@ -8,50 +8,71 @@ Gatekeeper implements the [OAuth 2.0](http://oauth.net/2/) protocol atop of
 [MongoDB](https://www.mongodb.org/), and is designed to be deployed with any service 
 that wants to expose a protected WebAPI for clients via the Internet.
 
-Single Resource Protection
-==============================
+Getting Started
+===============
 
-You can configure Gatekeeper to protect a single resources as follows:
+First, install Gatekeeper as a dependency.
+
+    npm install @onehilltech/gatekeeper --save
+    
+Next, add Gatekeeper as a module in your [Blueprint.js](https://github.com/onehilltech/blueprint)
+application by updating `app/modules.js`.
 
 ```javascript
-// Load Passport and Gatekeeper modules.
-var passport   = require ('passport')
-  , gatekeeper = require ('gatekeeper')
-  ;
+module.exports = exports = [
+  '@onehilltech/gatekeeper'
+];
+```
 
-// Install the bearar authentication strategy.
-passport.use (gatekeeper.auth.bearer ());
+Define the configuration file `gatekeeper.config.js` to configure the module
+for your application:
 
-// Create a protected resource using Express
-app.get ('/protected/resource/uri', [
-  passport.authenticate ('bearer', {session: false}),
-  function (req, res) {
-    // req.authInfo is set using the `info` argument supplied by
-    // `BearerStrategy`. It is typically used to indicate scope of the token,
-    // and used in access control checks. For illustrative purposes, this
-    // example simply returns the scope in the response.
-    res.json ({ id: req.user._id, name: req.user.email, scope: req.authInfo.scope })
+```javascript
+module.exports = {
+  token: {
+    kind: 'jwt',
+    options: {
+      issuer: 'name-of-the-application',
+      algorithm : 'RS256',
+      secret: 'ssshhh'   // can replace with publicKey, privateKey properties
+    }
   }
-]);
+};
 ```
 
-Base URI Protection
-==============================
-
-Single resource protectection is good if you do not need to protect a large number 
-of resources, or individual resources are not located under the same base URI. 
-If you need to protect a set of resources that have the same base URI, then use 
-the following approach:
+Define a route (or router) to import the Gatekeeper routes into the application:
 
 ```javascript
-// Load passport and mayipass modules.
-var passport   = require ('passport')
-  , gatekeeper = require ('gatekeeper')
+// app/routers/GatekeeperRouter.js
+var blueprint = require ('@onehilltech/blueprint')
   ;
 
-// Install the bearar authentication strategy.
-passport.use (gatekeeper.auth.bearer ());
-
-// Protect all routes under /baseuri
-app.use ('/baseuri', passport.authenticate ('bearer', {session: false}));
+module.exports = exports = {
+  '/gatekeeper': [ blueprint.ModuleRouter ('@onehilltech/gatekeeper:v1') ]
+};
 ```
+
+The router definition above will expose the Gatekeeper routers at the following
+location:
+
+    /gatekeeper
+
+Lastly, define the routes you want to protect. For example, you can protect a
+all routes on a give path:
+
+```javascript
+// app/routers/IndexRouter.js
+
+var passport = require ('passport')
+  ;
+
+exports = module.exports = {
+  '/v1': [
+    passport.authenticate ('bearer', {session: false})
+  ]
+};
+```
+
+The router above will protect all routes under the `/v1` path, which
+are all routers located in `app/routers/v1` directory.
+
