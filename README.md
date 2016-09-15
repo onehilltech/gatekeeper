@@ -57,11 +57,7 @@ module.exports = exports = {
 };
 ```
 
-The router definition above will expose the Gatekeeper routers at the following
-location:
-
-    /gatekeeper
-
+The router definition above will expose the Gatekeeper routers at `/gatekeeper`.
 Lastly, define the routes you want to protect. For example, you can protect a
 all routes on a give path:
 
