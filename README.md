@@ -10,7 +10,7 @@ OAuth 2.0 token server and module for Blueprint.js
 
 * Stand-alone token-based authentication server
 * Module support for [Blueprint.js](https://github.com/onehilltech/blueprint) integration
-* Implements the [OAuth 2.0](http://oauth.net/2/)
+* Implements the [OAuth 2.0](http://oauth.net/2/) specification
 * Uses [JSON Web Tokens (JWTs)](https://jwt.io/) to generate tokens
 * Stores tokens into [MongoDB](https://www.mongodb.org/) database
 
