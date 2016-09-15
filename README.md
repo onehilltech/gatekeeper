@@ -76,5 +76,10 @@ exports = module.exports = {
 ```
 
 The router above will protect all routes under the `/v1` path, which
-includes all routers located in `app/routers/v1` directory.
+includes all routers located in `app/routers/v1` directory. The client will
+need to define the `Authorization` header and include a generated token.
+Otherwise, the protected routes will return `401`.
 
+For more details on allowed routes, see `app/routers` for Gatekeeper.
+
+Happy Coding!
