@@ -1,3 +1,8 @@
+Gatekeeper
+=============
+
+OAuth 2.0 token server and module for Blueprint.js
+
 [![npm version](https://img.shields.io/npm/v/@onehilltech/gatekeeper.svg?maxAge=2592000)](https://www.npmjs.com/package/@onehilltech/gatekeeper)
 [![Build Status](https://travis-ci.org/onehilltech/gatekeeper.svg?branch=master)](https://travis-ci.org/onehilltech/gatekeeper)
 [![Dependencies](https://david-dm.org/onehilltech/gatekeeper.svg)](https://david-dm.org/onehilltech/gatekeeper)
