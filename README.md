@@ -8,9 +8,11 @@ OAuth 2.0 token server and module for Blueprint.js
 [![Dependencies](https://david-dm.org/onehilltech/gatekeeper.svg)](https://david-dm.org/onehilltech/gatekeeper)
 [![Coverage Status](https://coveralls.io/repos/github/onehilltech/gatekeeper/badge.svg?branch=master)](https://coveralls.io/github/onehilltech/gatekeeper?branch=master)
 
-An token server and client module for [Blueprint.js](https://github.com/onehilltech/blueprint).
-Gatekeeper implements the [OAuth 2.0](http://oauth.net/2/) protocol using 
-[JSON Web Tokens (JWTs)](https://jwt.io/) atop of [MongoDB](https://www.mongodb.org/).
+* Stand-alone token-based authentication server
+* Module support for [Blueprint.js](https://github.com/onehilltech/blueprint) integration
+* Implements the [OAuth 2.0](http://oauth.net/2/)
+* Uses [JSON Web Tokens (JWTs)](https://jwt.io/) to generate tokens
+* Stores tokens into [MongoDB](https://www.mongodb.org/) database
 
 Getting Started
 ===============
