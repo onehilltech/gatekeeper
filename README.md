@@ -15,14 +15,14 @@ OAuth 2.0 token server and module for Blueprint.js
 * Stores tokens into [MongoDB](https://www.mongodb.org/) database
 
 Installation
-===============
+--------------
 
 Install the [Blueprint.js](https://github.com/onehilltech/blueprint) module
 
     blueprint module install @onehilltech/gatekeeper
  
 Getting Started
-================
+----------------
 
 Define the configuration file `gatekeeper.config.js` to configure the module
 for your application:
