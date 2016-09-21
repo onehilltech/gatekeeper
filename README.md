@@ -14,21 +14,15 @@ OAuth 2.0 token server and module for Blueprint.js
 * Uses [JSON Web Tokens (JWTs)](https://jwt.io/) to generate tokens
 * Stores tokens into [MongoDB](https://www.mongodb.org/) database
 
-Getting Started
+Installation
 ===============
 
-First, install Gatekeeper as a dependency.
+Install the [Blueprint.js](https://github.com/onehilltech/blueprint) module
 
-    npm install @onehilltech/gatekeeper --save
-    
-Next, add Gatekeeper as a module in your [Blueprint.js](https://github.com/onehilltech/blueprint)
-application by updating `app/modules.js`.
-
-```javascript
-module.exports = exports = [
-  '@onehilltech/gatekeeper'
-];
-```
+    blueprint module install @onehilltech/gatekeeper
+ 
+Getting Started
+================
 
 Define the configuration file `gatekeeper.config.js` to configure the module
 for your application:
