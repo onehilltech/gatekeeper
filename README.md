@@ -28,7 +28,9 @@ First, run the setup script from the project directory:
 
     ./bin/gatekeeper-setup
     
-This will register [gatekeeper-cli]() with the server.
+This will register the [gatekeeper-cli]() client, and other clients, with the 
+server. The client registrations will be placed in `./gatekeeper` under the
+project directory.
 
 ### Defining the configuration
 
