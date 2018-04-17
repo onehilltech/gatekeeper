@@ -1,6 +1,8 @@
 Gatekeeper
 =============
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/onehilltech/blueprint-gatekeeper.svg)](https://greenkeeper.io/)
+
 OAuth 2.0 token server and module for Blueprint.js
 
 [![npm version](https://img.shields.io/npm/v/@onehilltech/blueprint-gatekeeper.svg?maxAge=2592000)](https://www.npmjs.com/package/@onehilltech/blueprint-gatekeeper)
