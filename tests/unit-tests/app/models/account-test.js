@@ -18,7 +18,7 @@ const blueprint = require ('@onehilltech/blueprint');
 const {seed} = require ('@onehilltech/blueprint-mongodb');
 const {expect} = require ('chai');
 
-describe.only ('app | models | account', function () {
+describe ('app | models | account', function () {
   describe ('create', function () {
     it ('should create and save a new account to the database', function () {
       const Account = blueprint.lookup ('model:account');
