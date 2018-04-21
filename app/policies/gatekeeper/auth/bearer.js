@@ -2,14 +2,14 @@ const async     = require ('async')
   , blueprint   = require ('@onehilltech/blueprint')
   , HttpError   = blueprint.HttpError
   , AccessToken = require ('../../../models/access-token')
-  , AccessTokenGenerator = require ('../../../utils/access-token-generator')
+  //, AccessTokenGenerator = require ('../../../utils/access-token-generator')
   ;
 
 const {
-  policies: { check, all, any }
+  policies: { all, any }
 } = require ('@onehilltech/blueprint');
 
-const tokenGenerator = new AccessTokenGenerator ();
+//const tokenGenerator = new AccessTokenGenerator ();
 
 module.exports = any ([
   /*

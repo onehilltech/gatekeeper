@@ -18,9 +18,9 @@ const blueprint = require ('@onehilltech/blueprint');
 const {seed} = require ('@onehilltech/blueprint-mongodb');
 const {expect} = require ('chai');
 
-describe ('app | models | access-token', function () {
+describe ('app | models | user-token', function () {
   describe ('create', function () {
-    it ('should create an access token', function () {
+    it ('should create an user token', function () {
       const {native} = seed ('$default');
       const AccessToken = blueprint.lookup ('model:access-token');
 

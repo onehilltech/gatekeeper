@@ -21,13 +21,13 @@ const {
 const mongodb  = require ('@onehilltech/blueprint-mongodb');
 const Schema   = mongodb.Schema;
 const AccessToken = require ('./access-token');
-const AccessTokenGenerator = require ('../utils/access-token-generator');
+const AccessTokenGenerator = require ('../-internal/access-token-generator');
 
 const discriminatorKey = AccessToken.schema.options.discriminatorKey;
 
 let options = require ('./-common-options') ({discriminatorKey});
 
-const tokenGenerator = new AccessTokenGenerator ();
+//const tokenGenerator = new AccessTokenGenerator ();
 const schema = new Schema ({ }, options);
 
 schema.methods.serialize = function () {

@@ -1,7 +1,7 @@
 const {expect} = require ('chai');
 const blueprint = require ('@onehilltech/blueprint');
 const async = require ('async');
-const ResetPasswordTokenGenerator = require ('../../../../../app/utils/reset-password-token-generator');
+//const ResetPasswordTokenGenerator = require ('../../../../../app/utils/reset-password-token-generator');
 
 describe ('app | routers | password', function () {
   let tokenGenerator;

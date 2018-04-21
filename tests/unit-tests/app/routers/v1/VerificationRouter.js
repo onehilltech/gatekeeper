@@ -2,7 +2,7 @@
 
 const async      = require ('async')
   , blueprint    = require ('@onehilltech/blueprint')
-  , verification = require ('../../../../../app/utils/account-verification')
+//  , verification = require ('../../../../../app/utils/account-verification')
   ;
 
 describe ('router:VerificationRouter', function () {

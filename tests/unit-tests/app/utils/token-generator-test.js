@@ -1,5 +1,5 @@
 const expect       = require ('chai').expect
-  , TokenGenerator = require ('../../../../app/utils/token-generator')
+  , TokenGenerator = require ('../../../../app/-internal/token-generator')
   ;
 
 describe ('app | utils | TokenGenerator', function () {

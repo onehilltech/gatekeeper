@@ -19,7 +19,7 @@ const Schema    = mongodb.Schema;
 const ObjectId  = mongodb.Schema.Types.ObjectId;
 const AccessToken = require ('./access-token');
 const Account     = require ('./account');
-const AccessTokenGenerator = require ('../utils/access-token-generator');
+const AccessTokenGenerator = require ('../-internal/access-token-generator');
 
 const {
   props
@@ -28,7 +28,7 @@ const {
 const discriminatorKey = AccessToken.schema.options.discriminatorKey;
 const options = require ('./-common-options') ({discriminatorKey});
 
-const tokenGenerator = new AccessTokenGenerator ();
+//const tokenGenerator = new AccessTokenGenerator ();
 
 let schema = new Schema ({
   /// Account that owns the token.
@@ -38,7 +38,7 @@ let schema = new Schema ({
   refresh_token: {type: ObjectId, index: true, unique: true, sparse: true}
 }, options);
 
-schema.methods.serialize = function (callback) {
+schema.methods.serialize = function () {
   return props ({
     access_token: (() => {
       const payload = { scope: this.scope };
