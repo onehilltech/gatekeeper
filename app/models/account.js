@@ -1,28 +1,30 @@
-'use strict';
-
-let bcrypt   = require ('bcrypt')
-  , mongodb  = require ('@onehilltech/blueprint-mongodb')
-  , async    = require ('async')
-  , ObjectId = mongodb.Schema.Types.ObjectId
-  , options  = require ('./commonOptions') ()
-  ;
-
-let Client = require ('./Client')
-  ;
-
-
-/**
- * The default transformation always removes the password from the
- * account. This ensures we do not leak the password.
+/*
+ * Copyright (c) 2018 One Hill Technologies, LLC
  *
- * @param doc
- * @param ret
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-function transform (doc, ret) {
-  delete ret.password;
-}
 
-options.toJSON.transform = options.toObject.transform = transform;
+const bcrypt  = require ('bcrypt');
+const mongodb = require ('@onehilltech/blueprint-mongodb');
+
+const {
+  Schema: {
+    Types: {ObjectId}
+  }
+} = mongodb;
+
+const options = require ('./-common-options') ();
+const Client = require ('./client');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -57,27 +59,15 @@ let schema = new Schema ({
  * Hash the user's password before saving it to the database. This will
  * help protect the password if the database is somehow hacked.
  */
-schema.pre ('save', function (next) {
+schema.pre ('save', function () {
   // only hash the password if it has been modified (or is new)
   if (!this.isModified ('password'))
-    return next ();
+    return Promise.resolve ();
 
-  let account = this;
-
-  async.waterfall ([
-    function (callback) {
-      bcrypt.genSalt (SALT_WORK_FACTOR, callback);
-    },
-
-    function (salt, callback) {
-      bcrypt.hash (account.password, salt, callback);
-    },
-
-    function (hash, callback) {
-      account.password = hash;
-      return callback (null);
-    }
-  ], next);
+  return bcrypt.hash (this.password, SALT_WORK_FACTOR)
+    .then (hash => {
+      this.password = hash
+    })
 });
 
 /**
@@ -88,8 +78,8 @@ schema.pre ('save', function (next) {
  * @param[in]           password          The user's password
  * @param[in]           callback          Callback function
  */
-schema.methods.verifyPassword = function (password, callback) {
-  bcrypt.compare (password, this.password, callback);
+schema.methods.verifyPassword = function (password) {
+  return bcrypt.compare (password, this.password);
 };
 
 /**
@@ -106,16 +96,19 @@ schema.virtual ('client_id').get (function () {
  * @param password
  * @param done
  */
-schema.statics.authenticate = function (username, password, done) {
-  this.findOne ({ username: username }, function (err, account) {
-    if (err) return done (err);
-    if (!account) return done (new Error ('Account does not exist'));
-    if (!account.enabled) return done (new Error ('Account is disabled'));
+schema.statics.authenticate = function (username, password) {
+  return this.findOne ({ username: username }).then (account => {
+    if (!account)
+      return Promise.reject (new Error ('The account does not exist.'));
 
-    account.verifyPassword (password, function (err, match) {
-      if (err) return done (err);
-      if (!match) return done (new Error ('Invalid password'));
-      return done (null, account);
+    if (!account.enabled)
+      return Promise.reject (new Error ('The account is disabled.'));
+
+    return account.verifyPassword (password).then (match => {
+      if (!match)
+        return Promise.reject (new Error ('The password is invalid.'));
+
+      return account;
     });
   });
 };

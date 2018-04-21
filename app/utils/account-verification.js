@@ -3,7 +3,6 @@
 const blueprint = require ('@onehilltech/blueprint')
   , mongoose    = require ('mongoose')
   , async       = require ('async')
-  , Account     = require ('../../app/models/Account')
   ;
 
 let token = null;
@@ -12,9 +11,9 @@ const DEFAULT_ISSUER = 'gatekeeper.verifier';
 const DEFAULT_TOKEN_SUBJECT = 'gatekeeper.account.verification';
 const DEFAULT_EXPIRES_IN = '7d';
 
-blueprint.messaging.on ('app.init', function (app) {
-  token = require ('../../lib/tokens') (app.configs.gatekeeper.token);
-});
+//blueprint.on ('app.init', function (app) {
+//  token = require ('../../lib/tokens') (app.configs.gatekeeper.token);
+//});
 
 /**
  * Generate a token for account activation.

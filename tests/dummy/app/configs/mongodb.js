@@ -14,8 +14,32 @@
  * limitations under the License.
  */
 
-const {
-  policies: { check }
-} = require ('@onehilltech/blueprint');
+module.exports = {
+  connections: {
+    $default: {
+      uri: 'mongodb://localhost/blueprint_gatekeeper',
+      seed: false,
+      options : {
+        readPreference: "primary",
+        forceServerObjectId: false,
+        w: 1,
+        autoReconnect: true,
+        keepAlive: 1,
+        poolSize: 5,
+      }
+    },
 
-module.exports = check ('gatekeeper.request.scope', 'gatekeeper.client.create');
+    secondary : {
+      uri: 'mongodb://localhost/blueprint_gatekeeper',
+      seed: false,
+      options : {
+        readPreference: "primary",
+        forceServerObjectId: false,
+        w: 1,
+        autoReconnect: true,
+        keepAlive: 1,
+        poolSize: 5,
+      }
+    }
+  }
+};

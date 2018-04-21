@@ -1,14 +1,17 @@
 const async     = require ('async')
   , blueprint   = require ('@onehilltech/blueprint')
-  , HttpError   = blueprint.errors.HttpError
-  , Policy      = blueprint.Policy
-  , AccessToken = require ('../../../models/AccessToken')
+  , HttpError   = blueprint.HttpError
+  , AccessToken = require ('../../../models/access-token')
   , AccessTokenGenerator = require ('../../../utils/access-token-generator')
   ;
 
+const {
+  policies: { check, all, any }
+} = require ('@onehilltech/blueprint');
+
 const tokenGenerator = new AccessTokenGenerator ();
 
-module.exports = Policy.anySeries ([
+module.exports = any ([
   /*
    * Either we are already authenticated.
    */
@@ -19,7 +22,7 @@ module.exports = Policy.anySeries ([
   /*
    * Or, we need to authenticate the user.
    */
-  Policy.allSeries ([
+  all ([
     /*
      * Verify and cache the access token.
      */

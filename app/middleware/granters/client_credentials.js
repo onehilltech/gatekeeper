@@ -1,4 +1,4 @@
-const ClientToken = require ('../../models/ClientToken');
+const ClientToken = require ('../../models/client-token');
 
 function createToken (req, callback) {
   const {client} = req;

@@ -14,8 +14,39 @@
  * limitations under the License.
  */
 
-const {
-  policies: { check }
-} = require ('@onehilltech/blueprint');
+'use strict';
 
-module.exports = check ('gatekeeper.request.scope', 'gatekeeper.client.create');
+let blueprint = require ('@onehilltech/blueprint');
+
+module.exports = {
+  baseUrl : 'http://localhost:5000/gatekeeper',
+  activationRequired: true,
+
+  email : {
+    transport: {
+      jsonTransport: true
+    },
+
+    views: {
+      options: {
+        extension: 'ejs'
+      }
+    },
+    message: {
+      from : 'no-reply@onehilltech.com',
+    },
+    locals: {
+      twitterHandle: 'onehilltech'
+    },
+  },
+
+  token: {
+    kind: 'jwt',
+    options: {
+      algorithm: 'RS256',
+      secret: 'ssshhh',
+      issuer: 'gatekeeper',
+      expiresIn: '1h'
+    }
+  }
+};

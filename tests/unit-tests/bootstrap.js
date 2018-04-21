@@ -14,8 +14,22 @@
  * limitations under the License.
  */
 
-const {
-  policies: { check }
-} = require ('@onehilltech/blueprint');
+const path  = require ('path');
+const blueprint = require ('@onehilltech/blueprint');
 
-module.exports = check ('gatekeeper.request.scope', 'gatekeeper.client.create');
+before (function () {
+  const appPath = path.resolve ('./tests/dummy/app');
+  return blueprint.createApplicationAndStart (appPath);
+});
+
+beforeEach (function () {
+  return blueprint.emit ('blueprint.test.start')
+});
+
+afterEach (function () {
+  return blueprint.emit ('blueprint.test.complete');
+});
+
+after (function () {
+  return blueprint.destroyApplication ();
+});

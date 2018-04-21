@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
+const {env} = require ('@onehilltech/blueprint');
 const {
-  policies: { check }
-} = require ('@onehilltech/blueprint');
+  merge
+} = require ('lodash');
 
-module.exports = check ('gatekeeper.request.scope', 'gatekeeper.client.create');
+module.exports = function (opts) {
+  const stats = env !== 'test';
+
+  return merge ({
+    toJSON: { stats, versionKey: false, depopulate: true },
+    toObject: { stats, versionKey: false, depopulate: true }
+  }, opts);
+};

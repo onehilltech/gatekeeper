@@ -29,7 +29,7 @@ module.exports = Object.extend ({
     let tokenConfig = app.configs.gatekeeper.token;
 
     if (!tokenConfig)
-      throw new Error ('gatekeeper.config.js: missing token property');
+      throw new Error ('gatekeeper.js: missing token property');
 
     let {kind, options} = tokenConfig;
 

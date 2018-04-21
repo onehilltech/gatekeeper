@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-const {
-  policies: { check }
-} = require ('@onehilltech/blueprint');
+const mongodb = require ('@onehilltech/blueprint-mongodb');
+const Client  = require ('./client');
+const options = require ('./-common-options') ();
 
-module.exports = check ('gatekeeper.request.scope', 'gatekeeper.client.create');
+options.discriminatorKey = Client.schema.options.discriminatorKey;
+
+let schema = new mongodb.Schema ({
+  /// g-recaptcha secret key
+  recaptcha_secret: {type: String, required: true}
+}, options);
+
+module.exports = Client.discriminator ('recaptcha', schema);

@@ -1,13 +1,16 @@
 'use strict';
 
 const blueprint = require ('@onehilltech/blueprint')
-  , Policy      = blueprint.Policy
-  , Client      = require ('../../models/Client')
   , granters    = require ('../../middleware/granters')
   , clients     = require ('./clients')
   ;
 
-module.exports = Policy.allSeries ([
+const {
+  policies: { all }
+} = require ('@onehilltech/blueprint');
+
+
+module.exports = all ([
   /*
    * The client must be in good standing.
    */
@@ -15,7 +18,7 @@ module.exports = Policy.allSeries ([
     return callback (null, req.client.enabled, {reason: 'client_disabled', message: 'Client is disabled'});
   },
 
-  Policy.all ([
+  all ([
     /*
      * Check the policies for the client type.
      */

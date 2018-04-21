@@ -2,9 +2,9 @@ const async     = require ('async');
 const blueprint = require ('@onehilltech/blueprint');
 const mongodb   = require ('@onehilltech/blueprint-mongodb');
 const ObjectId  = mongodb.Types.ObjectId;
-const HttpError = blueprint.errors.HttpError;
-const Account   = require ('../../models/Account');
-const UserToken = require ('../../models/UserToken');
+const HttpError = blueprint.HttpError;
+const Account   = require ('../../models/account');
+const UserToken = require ('../../models/user-token');
 const {union}   = require ('lodash');
 
 /**

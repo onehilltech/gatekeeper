@@ -3,7 +3,6 @@ const expect  = require ('chai').expect
   , blueprint = require ('@onehilltech/blueprint')
   , mongodb   = require ('@onehilltech/blueprint-mongodb')
   , _         = require ('underscore')
-  , Account   = require ('../../../../../app/models/Account')
   ;
 
 describe ('app | routers | account', function () {
@@ -237,6 +236,7 @@ describe ('app | routers | account', function () {
 
     describe ('/password', function () {
       it ('should change the password', function (done) {
+        const Account = blueprint.lookup ('model:account');
         const account = blueprint.app.seeds.$default.accounts[0];
 
         async.series ([

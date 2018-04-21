@@ -8,7 +8,7 @@ let blueprint  = require ('@onehilltech/blueprint')
   , _          = require ('underscore')
   , Account    = require ('../models/Account')
   , password   = require ('../middleware/granters/password')
-  , HttpError  = blueprint.errors.HttpError
+  , HttpError  = blueprint.HttpError
   ;
 
 let ResourceController = mongodb.ResourceController
