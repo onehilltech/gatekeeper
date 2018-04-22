@@ -23,6 +23,6 @@ const TokenGenerator = require ('./-token-generator');
  */
 module.exports = TokenGenerator.extend ({
   options: {
-    subject: 'gatekeeper:access-token'
+    subject: 'gatekeeper:password:reset'
   }
 });

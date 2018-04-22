@@ -3,7 +3,7 @@
 const async      = require ('async')
   , expect       = require ('chai').expect
   , blueprint    = require ('@onehilltech/blueprint')
-  , verification = require ('../../../../app/-internal/account-verification')
+  , verification = require ('../../../../app/-internal/account-verification-token-generator')
   ;
 
 describe ('utils:account-verification', function () {

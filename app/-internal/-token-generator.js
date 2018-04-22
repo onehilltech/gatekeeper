@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-const TokenGenerator = require ('./-token-generator');
+const TokenGenerator = require ('../../lib/token-generator');
 
-/**
- * @class AccessTokenGenerator
- *
- * The default class used for generating access tokens.
- */
 module.exports = TokenGenerator.extend ({
   options: {
-    subject: 'gatekeeper:access-token'
+    issuer: 'gatekeeper'
   }
 });

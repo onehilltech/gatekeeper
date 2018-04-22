@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-const TokenGenerator = require ('../../lib/token-generator');
-const merge = require ('lodash.merge');
+const TokenGenerator = require ('./-token-generator');
 
 /**
- * @class AccessTokenGenerator
- *
- * The default class used for generating access tokens.
+ * @class AccountVerificationTokenGenerator
  */
 module.exports = TokenGenerator.extend ({
-  init () {
-    this._super.apply (this, arguments);
-    merge (this.options, {issuer: 'gatekeeper', subject: 'gatekeeper.password.reset'});
+  options: {
+    subject: 'gatekeeper:account:verification',
+    expiresIn: '7d'
   }
 });
