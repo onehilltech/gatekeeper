@@ -17,7 +17,7 @@
 const TokenGenerator = require ('../../../lib/token-generator');
 const {expect} = require ('chai');
 
-describe.only ('lib | TokenGenerator', function () {
+describe ('lib | TokenGenerator', function () {
   function makeTokenGenerator () {
     return new TokenGenerator ({
       kind: 'jwt',

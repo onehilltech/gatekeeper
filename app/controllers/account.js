@@ -1,95 +1,94 @@
-'use strict';
+/*
+ * Copyright (c) 2018 One Hill Technologies, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const {
+  model,
+  HttpError
+} = require ('@onehilltech/blueprint');
+
+const {
+  get
+} = require ('lodash');
+
+const {
+  ResourceController
+} = require ('@onehilltech/blueprint-mongodb');
 
 let blueprint  = require ('@onehilltech/blueprint')
   , mongodb    = require ('@onehilltech/blueprint-mongodb')
   , ObjectId   = mongodb.Types.ObjectId
-  , async      = require ('async')
   , objectPath = require ('object-path')
   , _          = require ('underscore')
-  , Account    = require ('../models/Account')
   , password   = require ('../middleware/granters/password')
-  , HttpError  = blueprint.HttpError
-  ;
-
-let ResourceController = mongodb.ResourceController
   ;
 
 /**
  * Default account id generator. This generator will just produce a new
  * ObjectId for each account.
  */
-function __generateAccountId (account, callback) {
-  callback (null, account._id || new ObjectId ());
-}
-
-let generateAccountId = objectPath.get (blueprint.app.configs.gatekeeper, 'generators.accountId', __generateAccountId);
-
-/**
- * Sanitize the account id.
- *
- * @param req
- * @param callback
- * @returns {*}
- */
-function idSanitizer (req, callback) {
-  if (req.params.accountId === 'me')
-    req.params.accountId = req.user._id;
-  else
-    req.sanitizeParams ('accountId').toMongoId ();
-
-  return callback (null);
+function __generateAccountId (account) {
+  return Promise.resolve (account._id || new ObjectId ());
 }
 
 /**
  * @class AccountController
- *
- * @constructor
  */
-function AccountController () {
-  ResourceController.call (this, {
-    model: Account,
-    namespace: 'gatekeeper',
-    modelPath: 'created_by',
-    idOptions: {
-      validator: 'isMongoIdOrToken',
-      validatorOptions: ['me'],
-      sanitizer: idSanitizer
+module.exports = ResourceController.extend ({
+  model: model ('account'),
+  namespace: 'gatekeeper',
+
+  schema: {
+    isMongoId: null,
+    toMongoId: null,
+
+    isMongoIdOrToken: {
+      options: [['me']]
     }
-  });
-}
+  },
 
-blueprint.controller (AccountController, ResourceController);
+  init () {
+    this._super.call (this, ...arguments);
+    this._generateAccountId = get (this.app.configs, 'gatekeeper.generators.accountId', __generateAccountId);
+  },
 
-module.exports = AccountController;
-
-/**
- * Specialize the creation of an account.
- */
-AccountController.prototype.create = function () {
-  let options = {
-    on: {
-      prepareDocument: function (req, doc, callback) {
+  create () {
+    return this._super.call (this, ...arguments).extend ({
+      prepareDocument (req, doc) {
         doc.created_by = req.user.client_id;
 
-        async.waterfall ([
-          function (callback) {
-            generateAccountId (doc, callback);
-          },
+        return this._generateAccountId (doc).then (id => {
+          if (id)
+            doc._id = id;
 
-          function (id, callback) {
-            if (id != null)
-              doc._id = id;
-
-            return callback (null, doc);
-          }
-        ], callback);
+          return doc;
+        });
       },
 
-      prepareResponse: function (req, result, callback) {
-        if (!req.query.login)
-          return callback (null, result);
+      prepareResponse (req, res, result) {
+        // If the origin request wanted to login the user, then we need to
+        // return to login the user for the account and return the access
+        // token for the corresponding login.
 
-        async.waterfall ([
+        const login = get (req.query, 'login', false);
+
+        if (!login)
+          return result;
+
+        /*
+                async.waterfall ([
           function (callback) {
             req.client = req.user;
             req.account = result.account;
@@ -106,17 +105,15 @@ AccountController.prototype.create = function () {
             return callback (null, result);
           }
         ], callback);
+
+         */
       }
-    }
-  };
+    });
+  }
+});
 
-  return ResourceController.prototype.create.call (this, options);
-};
-
-/**
- * Specialize the update of an account.
- */
-AccountController.prototype.update = function () {
+/*
+Account.prototype.update = function () {
   return ResourceController.prototype.update.call (this, {
     on: {
       prepareUpdate: function (req, doc, callback) {
@@ -142,10 +139,7 @@ AccountController.prototype.update = function () {
   });
 };
 
-/**
- * Change the password on the account.
- */
-AccountController.prototype.changePassword = function () {
+Account.prototype.changePassword = function () {
   return {
     validate: {
       'accountId': {
@@ -201,3 +195,5 @@ AccountController.prototype.changePassword = function () {
     }
   }
 };
+
+*/
