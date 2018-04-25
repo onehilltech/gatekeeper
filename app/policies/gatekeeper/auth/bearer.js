@@ -24,6 +24,14 @@ const {
 
 const assert = require ('assert');
 
+const {
+  some
+} = require ('micromatch');
+
+const {
+  flattenDeep
+} = require ('lodash');
+
 const AccessTokenGenerator = require ('../../../-internal/access-token-generator');
 const BEARER_SCHEME_REGEXP = /^Bearer$/i;
 
@@ -47,7 +55,7 @@ module.exports = Policy.extend ({
    * @param scope
    */
   setParameters (...scope) {
-
+    this.scope = flattenDeep (...scope);
   },
 
   runCheck (req) {
@@ -124,15 +132,27 @@ module.exports = Policy.extend ({
         req.user = accessToken.account;
       }
 
+      // Lastly, check the scope of the request is exist. We only authorize requests
+      // that have a scope that matches the scope of the policy.
+      if (this.scope) {
+        let {scope} = req;
+
+        if (scope.length === 0)
+          return {failureCode: 'missing_scope', failureMessage: 'This request does not have any scope.'};
+
+        if (!some (this.scope, scope))
+          return {failureCode: 'invalid_scope', failureMessage: 'This request does not have a valid scope.'};
+      }
+
       return true;
     }).catch (err => {
       // Translate the error, if necessary. We have to check the name because the error
       // could be related to token verification.
       if (err.name === 'TokenExpiredError')
-        return Promise.reject (new ForbiddenError ('token_expired', 'The access token has expired.'));
+        err = new ForbiddenError ('token_expired', 'The access token has expired.');
 
       if (err.name === 'JsonWebTokenError')
-        return Promise.reject (new ForbiddenError ('invalid_token', err.message));
+        err = new ForbiddenError ('invalid_token', err.message);
 
       return Promise.reject (err);
     });
