@@ -64,7 +64,7 @@ module.exports = Policy.extend ({
     // need to check the authorization header.
 
     if (!!req.user)
-      return true;
+      return this._checkScope (req);
 
     let authorization = req.get ('authorization');
     let token;
@@ -134,17 +134,7 @@ module.exports = Policy.extend ({
 
       // Lastly, check the scope of the request is exist. We only authorize requests
       // that have a scope that matches the scope of the policy.
-      if (this.scope) {
-        let {scope} = req;
-
-        if (scope.length === 0)
-          return {failureCode: 'missing_scope', failureMessage: 'This request does not have any scope.'};
-
-        if (!some (this.scope, scope))
-          return {failureCode: 'invalid_scope', failureMessage: 'This request does not have a valid scope.'};
-      }
-
-      return true;
+      return this._checkScope (req);
     }).catch (err => {
       // Translate the error, if necessary. We have to check the name because the error
       // could be related to token verification.
@@ -156,5 +146,24 @@ module.exports = Policy.extend ({
 
       return Promise.reject (err);
     });
+  },
+
+  /**
+   * Check the scope of the request against the scope of this policy.
+   *
+   * @param req
+   * @returns {*}
+   * @private
+   */
+  _checkScope (req) {
+    if (!this.scope || this.scope.length === 0)
+      return true;
+
+    let {scope} = req;
+
+    if (scope.length === 0)
+      return {failureCode: 'missing_scope', failureMessage: 'This request does not have any scope.'};
+
+    return some (this.scope, scope) ? true : {failureCode: 'invalid_scope', failureMessage: 'This request does not have a valid scope.'};
   }
 });
