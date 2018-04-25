@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+const blueprint = require ('@onehilltech/blueprint');
+
 const {
   Policy,
   ForbiddenError,
   model
-} = require ('@onehilltech/blueprint');
+} = blueprint;
 
 const assert = require ('assert');
 
@@ -44,7 +46,7 @@ module.exports = Policy.extend ({
    *
    * @param scope
    */
-  setParameters ([scope]) {
+  setParameters (...scope) {
 
   },
 

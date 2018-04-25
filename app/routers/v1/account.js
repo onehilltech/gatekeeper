@@ -31,7 +31,7 @@ module.exports = {
 
     '/:accountId': {
       '/password': {
-        post: {action: 'AccountController@changePassword', policy: 'gatekeeper.account.isMe' }
+        post: {action: 'account@changePassword', policy: 'gatekeeper.account.me' }
       }
     }
   }

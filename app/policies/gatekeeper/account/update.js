@@ -20,6 +20,6 @@ const {
 
 module.exports = any ([
   check ('gatekeeper.account.me'),
-  check ('gatekeeper.request.scope', 'gatekeeper.account.update')
+  check ('gatekeeper.scope', 'gatekeeper.account.update')
 ]);
 

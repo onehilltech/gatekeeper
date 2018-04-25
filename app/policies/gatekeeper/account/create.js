@@ -19,7 +19,7 @@ const {
 } = require ('@onehilltech/blueprint');
 
 module.exports = all ([
-  check ('gatekeeper.request.scope', 'gatekeeper.account.create'),
+  check ('gatekeeper.scope', 'gatekeeper.account.create'),
 
   /*
    * Check the password policy. The password policy is optional. If an application
@@ -27,6 +27,6 @@ module.exports = all ([
    * in their application.
    */
   check ('?gatekeeper.account.password')
-]);
+], 'create_prohibited', 'The user is not allowed to create accounts.');
 
 

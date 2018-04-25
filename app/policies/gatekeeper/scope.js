@@ -15,7 +15,27 @@
  */
 
 const {
-  policies: { check }
+  Policy
 } = require ('@onehilltech/blueprint');
 
-module.exports = check ('gatekeeper.scope', 'gatekeeper.client.create');
+const mm = require ('micromatch');
+
+module.exports = Policy.extend ({
+  failureCode: 'invalid_scope',
+  failureMessage: 'This request does not have a valid scope.',
+
+  scope: null,
+
+  setParameters (scope) {
+    this.scope = scope;
+  },
+
+  runCheck (req) {
+    let {scope} = req;
+
+    if (!scope || scope.length === 0)
+      return {failureCode: 'missing_scope', failureMessage: 'This request is missing a scope.'};
+
+    return mm.some (this.scope, scope);
+  }
+});

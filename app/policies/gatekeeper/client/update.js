@@ -18,4 +18,4 @@ const {
   policies: { check  }
 } = require ('@onehilltech/blueprint');
 
-module.exports = check ('gatekeeper.request.scope', 'gatekeeper.client.update');
+module.exports = check ('gatekeeper.scope', 'gatekeeper.client.update');

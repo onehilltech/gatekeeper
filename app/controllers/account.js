@@ -24,14 +24,15 @@ const {
 } = require ('lodash');
 
 const {
+  Action
+} = require ('@onehilltech/blueprint');
+
+const {
   ResourceController
 } = require ('@onehilltech/blueprint-mongodb');
 
-let blueprint  = require ('@onehilltech/blueprint')
-  , mongodb    = require ('@onehilltech/blueprint-mongodb')
+let mongodb    = require ('@onehilltech/blueprint-mongodb')
   , ObjectId   = mongodb.Types.ObjectId
-  , objectPath = require ('object-path')
-  , _          = require ('underscore')
   , password   = require ('../middleware/granters/password')
   ;
 
@@ -107,6 +108,14 @@ module.exports = ResourceController.extend ({
         ], callback);
 
          */
+      }
+    });
+  },
+
+  changePassword () {
+    return Action.extend ({
+      execute (req, res) {
+
       }
     });
   }
