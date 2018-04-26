@@ -43,7 +43,7 @@ module.exports = {
   token: {
     kind: 'jwt',
     options: {
-      algorithm: 'RS256',
+      algorithm: 'HS256',
       secret: 'ssshhh',
       issuer: 'gatekeeper',
       expiresIn: '1h'

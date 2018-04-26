@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+const assert = require ('assert');
+const blueprint = require ('@onehilltech/blueprint');
 const mongodb   = require ('@onehilltech/blueprint-mongodb');
 const Schema    = mongodb.Schema;
 const ObjectId  = mongodb.Schema.Types.ObjectId;
@@ -25,10 +27,19 @@ const {
   props
 } = require ('bluebird');
 
+const {
+  get
+} = require ('lodash');
+
 const discriminatorKey = AccessToken.schema.options.discriminatorKey;
 const options = require ('./-common-options') ({discriminatorKey});
 
-//const tokenGenerator = new AccessTokenGenerator ();
+const config = blueprint.lookup ('config:gatekeeper');
+const tokenOptions = get (config, 'token');
+
+assert (!!tokenOptions, 'The gatekeeper configuration file (app/configs/gatekeeper.js) must define {token} property');
+
+const defaultGenerator = new AccessTokenGenerator (tokenOptions);
 
 let schema = new Schema ({
   /// Account that owns the token.
@@ -38,13 +49,16 @@ let schema = new Schema ({
   refresh_token: {type: ObjectId, index: true, unique: true, sparse: true}
 }, options);
 
-schema.methods.serialize = function () {
+schema.methods.serialize = function (generator = defaultGenerator) {
   return props ({
     access_token: (() => {
       const payload = { scope: this.scope };
-      const options = { jwtid: this.id, audience: this.origin };
+      const options = { jwtid: this.id };
 
-      return tokenGenerator.generateToken (payload, options);
+      if (this.origin)
+        options.audience = this.origin;
+
+      return generator.generateToken (payload, options);
     })(),
 
     refresh_token: (() => {
@@ -57,12 +71,12 @@ schema.methods.serialize = function () {
       if (this.origin)
         options.audience = this.origin;
 
-      tokenGenerator.generateToken (payload, options, callback);
+      generator.generateToken (payload, options, callback);
     })()
   });
 };
 
-schema.methods.serializeSync = function () {
+schema.methods.serializeSync = function (generator = defaultGenerator) {
   return  {
     access_token: (() => {
       let options = {jwtid: this.id};
@@ -70,7 +84,7 @@ schema.methods.serializeSync = function () {
       if (this.origin)
         options.audience = this.origin;
 
-      return tokenGenerator.generateTokenSync ({ scope: this.scope }, options);
+      return generator.generateTokenSync ({ scope: this.scope }, options);
     }) (),
 
     refresh_token: (() => {
@@ -82,7 +96,7 @@ schema.methods.serializeSync = function () {
       if (this.origin)
         option.audience = this.origin;
 
-      return tokenGenerator.generateTokenSync ({}, options);
+      return generator.generateTokenSync ({}, options);
     })
   };
 };

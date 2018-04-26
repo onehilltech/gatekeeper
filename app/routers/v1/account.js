@@ -26,7 +26,7 @@ module.exports = {
 
     resource: {
       controller: 'account',
-      deny: ['count']
+      deny: ['count'],
     },
 
     '/:accountId': {

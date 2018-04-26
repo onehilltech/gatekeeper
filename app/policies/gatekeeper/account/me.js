@@ -25,6 +25,6 @@ module.exports = Policy.extend ({
 
   runCheck (req) {
     let {accountId} = req.params;
-    return !!accountId && accountId.equals (req.user._id);
+    return accountId === 'me' || accountId.equals (req.user._id);
   }
 });

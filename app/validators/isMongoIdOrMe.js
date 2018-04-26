@@ -14,4 +14,10 @@
  * limitations under the License.
  */
 
-exports.request = require ('./request');
+const {
+  isMongoId
+} = require ('validator');
+
+module.exports = function (value) {
+  return value === 'me' ? true : isMongoId (value);
+};

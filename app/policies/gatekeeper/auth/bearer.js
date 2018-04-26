@@ -19,6 +19,7 @@ const blueprint = require ('@onehilltech/blueprint');
 const {
   Policy,
   ForbiddenError,
+  BadRequestError,
   model
 } = blueprint;
 
@@ -73,10 +74,10 @@ module.exports = Policy.extend ({
       let parts = authorization.split (' ');
 
       if (parts.length !== 2)
-        return {failureCode: 'invalid_authorization', failureMessage: 'The authorization header is invalid.'};
+        return Promise.reject (new BadRequestError ('invalid_authorization', 'The authorization header is invalid.'));
 
       if (!BEARER_SCHEME_REGEXP.test (parts[0]))
-        return {failureCode: 'invalid_scheme', failureMessage: 'The authorization scheme is invalid.'};
+        return Promise.reject (new BadRequestError ('invalid_scheme', 'The authorization scheme is invalid.'));
 
       token = parts[1];
     }
@@ -87,7 +88,7 @@ module.exports = Policy.extend ({
       token = req.query.access_token;
     }
     else {
-      return {failureCode: 'missing_token', failureMessage: 'The access token is missing.'};
+      return Promise.reject (new BadRequestError ('missing_token', 'The access token is missing.'));
     }
 
     return this._tokenGenerator.verifyToken (token).then (payload => {
@@ -121,12 +122,12 @@ module.exports = Policy.extend ({
       req.accessToken = accessToken;
       req.user = accessToken.client;
 
-      if (accessToken.kind === 'user_token') {
+      if (accessToken.type === 'user_token') {
         if (!accessToken.account)
           return {failureCode: 'unknown_account', failureMessage: 'The account is unknown.'};
 
         if (!accessToken.account.enabled)
-          return {failureCode: 'unknown_account', failureMessage: 'The account is disabled.'};
+          return {failureCode: 'account_disabled', failureMessage: 'The account is disabled.'};
 
         // Update the user to the account id.
         req.user = accessToken.account;

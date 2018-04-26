@@ -51,15 +51,6 @@ module.exports = ResourceController.extend ({
   model: model ('account'),
   namespace: 'gatekeeper',
 
-  schema: {
-    isMongoId: null,
-    toMongoId: null,
-
-    isMongoIdOrToken: {
-      options: [['me']]
-    }
-  },
-
   init () {
     this._super.call (this, ...arguments);
     this._generateAccountId = get (this.app.configs, 'gatekeeper.generators.accountId', __generateAccountId);
@@ -108,6 +99,21 @@ module.exports = ResourceController.extend ({
         ], callback);
 
          */
+      }
+    });
+  },
+
+  getOne () {
+    return this._super.call (this, ...arguments).extend ({
+      schema: {
+        [this.resourceId]: {
+          isMongoId: false,
+          isMongoIdOrMe: true
+        }
+      },
+
+      getId (req, id) {
+        return id === 'me' ? req.user._id : id;
       }
     });
   },
