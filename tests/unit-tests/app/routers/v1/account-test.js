@@ -63,35 +63,13 @@ describe.only ('app | routers | account', function () {
 
     context ('POST', function () {
       let data = { username: 'tester1', password: 'tester1', email: 'james@onehilltech.com' };
-      let account = null;
 
-      it ('should create a new account', function (done) {
-        // We know the account was created when we get an event for
-        // sending an account activation email.
-        blueprint.messaging.once ('gatekeeper.account.created', function (model) {
-          account = model;
-        });
-
-        request ()
+      it.only ('should create a new account', function () {
+        return request ()
           .post ('/v1/accounts')
           .send ({account: data})
           .withClientToken (0)
-          .expect (200)
-          .end ((err, res) => {
-            if (err)
-              return done (err);
-
-            // Wait until the gatekeeper.account.created message is handled.
-            waitFor (() => { return account !== null },
-              function (err) {
-                if (err)
-                  return done (err);
-
-                expect (res.body).to.eql ({account: account.lean ()});
-
-                return done (null);
-              });
-          });
+          .expect (500, {});
       });
 
       it ('should create a new account, and login the user', function (done) {

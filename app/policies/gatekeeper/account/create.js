@@ -27,6 +27,6 @@ module.exports = all ([
    * in their application.
    */
   check ('?gatekeeper.account.password')
-], 'create_prohibited', 'The user is not allowed to create accounts.');
+]);
 
 

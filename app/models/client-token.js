@@ -18,19 +18,32 @@ const {
   props
 } = require ('bluebird');
 
-const mongodb  = require ('@onehilltech/blueprint-mongodb');
-const Schema   = mongodb.Schema;
+const assert = require ('assert');
+const blueprint = require ('@onehilltech/blueprint');
+const mongodb = require ('@onehilltech/blueprint-mongodb');
+const Schema  = mongodb.Schema;
 const AccessToken = require ('./access-token');
 const AccessTokenGenerator = require ('../-internal/access-token-generator');
+
+const {
+  get
+} = require ('lodash');
 
 const discriminatorKey = AccessToken.schema.options.discriminatorKey;
 
 let options = require ('./-common-options') ({discriminatorKey});
 
+const config = blueprint.lookup ('config:gatekeeper');
+const tokenOptions = get (config, 'token');
+
+assert (!!tokenOptions, 'The gatekeeper configuration file (app/configs/gatekeeper.js) must define {token} property');
+
+const defaultGenerator = new AccessTokenGenerator (tokenOptions);
+
 //const tokenGenerator = new AccessTokenGenerator ();
 const schema = new Schema ({ }, options);
 
-schema.methods.serialize = function () {
+schema.methods.serialize = function (tokenGenerator = defaultGenerator) {
   return props ({
     access_token: (() => {
       const payload = { scope: this.scope };
@@ -44,7 +57,7 @@ schema.methods.serialize = function () {
   });
 };
 
-schema.methods.serializeSync = function () {
+schema.methods.serializeSync = function (tokenGenerator = defaultGenerator) {
   return {
     access_token: (() => {
       const payload = { scope: this.scope };
