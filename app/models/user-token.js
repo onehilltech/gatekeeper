@@ -71,7 +71,7 @@ schema.methods.serialize = function (generator = defaultGenerator) {
       if (this.origin)
         options.audience = this.origin;
 
-      generator.generateToken (payload, options, callback);
+      return generator.generateToken (payload, options);
     })()
   });
 };

@@ -24,8 +24,13 @@ const {
 
 const {
   lean,
-  seed
+  seed,
+
+  Types: {
+    ObjectId
+  }
 } = require ('@onehilltech/blueprint-mongodb');
+
 
 describe.only ('app | routers | account', function () {
   describe ('/v1/accounts', function () {
@@ -62,78 +67,125 @@ describe.only ('app | routers | account', function () {
     });
 
     context ('POST', function () {
-      let data = { username: 'tester1', password: 'tester1', email: 'james@onehilltech.com' };
+      const data = { username: 'tester1', password: 'tester1', email: 'james@onehilltech.com' };
 
-      it.only ('should create a new account', function () {
+      it ('should create a new account with new id', function () {
+        const {native} = seed ('$default');
+
         return request ()
           .post ('/v1/accounts')
           .send ({account: data})
           .withClientToken (0)
-          .expect (500, {});
+          .expect (200).then (res => {
+            let _id = res.body.account._id;
+
+            expect (res.body).to.eql ({account: {_id, enabled: true, scope: [], username: data.username, email: data.email, created_by: native[0].id}})
+          });
       });
 
-      it ('should create a new account, and login the user', function (done) {
+      it ('should create a new account with existing id', function () {
+        const {native} = seed ('$default');
+        const _id = new ObjectId ();
+
+        return request ()
+          .post ('/v1/accounts')
+          .send ({account: Object.assign ({_id}, data)})
+          .withClientToken (0)
+          .expect (200, {account: {_id: _id.toString (), enabled: true, scope: [], username: data.username, email: data.email, created_by: native[0].id}});
+      });
+
+      it ('should create a new account, and login the user', function () {
+        const {native} = seed ('$default');
+
         const autoLogin = {
-          _id: mongodb.Types.ObjectId (),
+          _id: new ObjectId (),
           username: 'auto-login',
           password: 'auto-login',
           email: 'auto-login@onehilltech.com'
         };
 
-        request ()
+        let expected = Object.assign ({
+          _id: autoLogin._id.toString (),
+          created_by: native[0].id,
+          scope: [],
+          enabled: true
+        }, {username: autoLogin.username, email: autoLogin.email});
+
+        return request ()
           .post ('/v1/accounts')
           .query ({login: true})
           .send ({account: autoLogin})
           .withClientToken (0)
-          .expect (200)
-          .end (function (err, res) {
-            if (err)
-              return done (err);
-
-            let actual = mongodb.lean (_.omit (_.extend (autoLogin, {
-              created_by: blueprint.app.seeds.$default.native[0].id,
-              scope: [],
-              enabled: true
-            }), ['password']));
-
-            expect (res.body.account).to.eql (actual);
+          .expect (200).then (res => {
+            expect (res.body.account).to.eql (expected);
             expect (res.body).to.have.property ('token');
 
             expect (res.body.token).to.have.keys (['token_type', 'access_token', 'refresh_token']);
             expect (res.body.token).to.have.property ('token_type', 'Bearer');
-
-            return done (null);
           });
       });
 
-      it ('should not create an account [duplicate]', function (done) {
-        const account = blueprint.app.seeds.$default.accounts[0];
+      it ('should not create an account [duplicate]', function () {
+        const {accounts} = seed ('$default');
+        const account = accounts[0];
+
         const dup = {username: account.username, password: account.password, email: account.email, created_by: account.created_by};
 
-        request ()
+        return request ()
           .post ('/v1/accounts')
           .send ({account: dup})
           .withClientToken (0)
-          .expect (400, done);
+          .expect (400, { errors:
+              [ { code: 'already_exists',
+                detail: 'The resource you are creating already exists.',
+                status: '400' } ] });
       });
 
-      it ('should not create an account [missing parameter]', function (done) {
+      it ('should not create an account [missing parameter]', function () {
         const invalid = {password: 'tester1', email: 'james@onehilltech.com'};
 
-        request ()
+        return request ()
           .post ('/v1/accounts')
           .send (invalid)
           .withClientToken (0)
-          .expect (400, done);
+          .expect (400, {
+            errors: [
+              {
+                code: 'validation_failed',
+                detail: 'The request validation failed.',
+                meta: {
+                  validation: {
+                    'account.email': {
+                      location: 'body',
+                      msg: 'This field is required.',
+                      param: 'account.email',
+                    },
+                    'account.password': {
+                      location: 'body',
+                      msg: 'This field is required.',
+                      param: 'account.password',
+                    },
+                    'account.username': {
+                      location: 'body',
+                      msg: 'This field is required.',
+                      param: 'account.username',
+                    }
+                  }
+                },
+                status: '400'
+              }
+            ]
+          });
       });
 
-      it ('should not create an account [invalid scope]', function (done) {
+      it ('should not create an account [invalid scope]', function () {
         const account = { username: 'tester1', password: 'tester1', email: 'james@onehilltech.com'};
 
-        request ()
-          .post ('/v1/accounts').send ({account: account})
+        return request ()
+          .post ('/v1/accounts')
+          .send ({account: account})
           .withClientToken (1)
-          .expect (403, { errors: [{ status: '403', code: 'invalid_scope', detail: 'This request does not have a valid scope.' }] }, done);
+          .expect (403, { errors: [{ status: '403', code: 'invalid_scope', detail: 'This request does not have a valid scope.' }] });
       });
     });
   });

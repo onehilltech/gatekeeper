@@ -29,13 +29,16 @@ const {
 } = require ('@onehilltech/blueprint');
 
 const {
-  ResourceController
+  ResourceController,
+  Types: {
+    ObjectId
+  }
 } = require ('@onehilltech/blueprint-mongodb');
 
-let mongodb    = require ('@onehilltech/blueprint-mongodb')
-  , ObjectId   = mongodb.Types.ObjectId
-  , password   = require ('../middleware/granters/password')
-  ;
+const password = require ('../middleware/granters/password');
+const {
+  fromCallback
+} = require ('bluebird');
 
 /**
  * Default account id generator. This generator will just produce a new
@@ -43,7 +46,7 @@ let mongodb    = require ('@onehilltech/blueprint-mongodb')
  */
 function __generateAccountId (account) {
   return Promise.resolve (account._id || new ObjectId ());
-}
+};
 
 /**
  * @class AccountController
@@ -52,9 +55,12 @@ module.exports = ResourceController.extend ({
   model: model ('account'),
   namespace: 'gatekeeper',
 
+  _generateAccountId: null,
+
   init () {
     this._super.call (this, ...arguments);
-    this._generateAccountId = get (this.app.configs, 'gatekeeper.generators.accountId', __generateAccountId);
+
+    this._generateAccountId = get (this.app.configs, 'gatekeeper.generatorsAccountId', __generateAccountId);
   },
 
   create () {
@@ -62,7 +68,7 @@ module.exports = ResourceController.extend ({
       prepareDocument (req, doc) {
         doc.created_by = req.user.client_id;
 
-        return this._generateAccountId (doc).then (id => {
+        return this.controller._generateAccountId (doc).then (id => {
           if (id)
             doc._id = id;
 
@@ -80,26 +86,16 @@ module.exports = ResourceController.extend ({
         if (!login)
           return result;
 
-        /*
-                async.waterfall ([
-          function (callback) {
-            req.client = req.user;
-            req.account = result.account;
+        return fromCallback (callback => {
+          req.client = req.user;
+          req.account = result.account;
 
-            password.createToken (req, callback);
-          },
-
-          function (accessToken, callback) {
-            accessToken.serialize (callback);
-          },
-
-          function (token, callback) {
-            result.token = _.extend ({token_type: 'Bearer'}, token);
-            return callback (null, result);
-          }
-        ], callback);
-
-         */
+          return password.createToken (req, callback);
+        }).then (accessToken => accessToken.serialize ())
+          .then (token => {
+            result.token = Object.assign ({token_type: 'Bearer'}, token);
+            return result;
+          });
       }
     });
   },
