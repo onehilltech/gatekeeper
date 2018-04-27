@@ -31,6 +31,9 @@ module.exports = Policy.extend ({
   },
 
   runCheck (req) {
+    if (!this.scope || this.scope.length === 0)
+      return true;
+
     let {scope} = req;
 
     if (!scope || scope.length === 0)
