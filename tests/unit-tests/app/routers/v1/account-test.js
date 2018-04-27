@@ -31,6 +31,7 @@ const {
   }
 } = require ('@onehilltech/blueprint-mongodb');
 
+const blueprint = require ('@onehilltech/blueprint');
 
 describe.only ('app | routers | account', function () {
   describe ('/v1/accounts', function () {
@@ -323,42 +324,36 @@ describe.only ('app | routers | account', function () {
     });
 
     describe ('/password', function () {
-      it ('should change the password', function (done) {
-        const Account = blueprint.lookup ('model:account');
-        const account = blueprint.app.seeds.$default.accounts[0];
+      it ('should change the password', function () {
+        const {accounts} = seed ('$default');
+        const account = accounts[0];
 
-        async.series ([
-          function (callback) {
-            request ()
-              .post ('/v1/accounts/' + account.id + '/password')
-              .withUserToken (0)
-              .send ({password: { current: account.username, new: 'new-password'}})
-              .expect (200, 'true', callback);
-          },
+        return request ()
+          .post (`/v1/accounts/${account.id}/password`)
+          .withUserToken (0)
+          .send ({password: { current: account.username, new: 'new-password'}})
+          .expect (200, 'true').then (() => {
+            const Account = blueprint.lookup ('model:account');
 
-          function (callback) {
-            async.waterfall ([
-              function (callback) {
-                Account.findById (account._id, callback);
-              },
-
-              function (changed, callback) {
-                expect (changed.password).to.not.equal (account.password);
-                return callback (null);
-              }
-            ], callback);
-          }
-        ], done);
+            return Account.findById (account._id)
+              .then (actual => {
+                expect (account.password).to.not.equal (actual.password);
+              });
+          });
       });
 
-      it ('should not change the password because current is wrong', function (done) {
-        const account = blueprint.app.seeds.$default.accounts[0];
+      it ('should not change the password because current is wrong', function () {
+        const {accounts} = seed ('$default');
+        const account = accounts[0];
 
-        request ()
-          .post ('/v1/accounts/' + account.id + '/password')
+        return request ()
+          .post (`/v1/accounts/${account.id}/password`)
           .withUserToken (0)
           .send ({password: { current: 'bad-password', new: 'new-password'}})
-          .expect (400, { errors: [{ status: '400', code: 'invalid_password', detail: 'Current password is invalid' }] }, done);
+          .expect (400, { errors:
+              [ { code: 'invalid_password',
+                detail: 'The current password is invalid.',
+                status: '400' } ] });
       });
     });
   });

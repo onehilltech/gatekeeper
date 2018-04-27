@@ -16,12 +16,12 @@
 
 const {
   model,
+  NotFoundError,
   BadRequestError
 } = require ('@onehilltech/blueprint');
 
 const {
-  get,
-  has
+  get
 } = require ('lodash');
 
 const {
@@ -46,7 +46,7 @@ const {
  */
 function __generateAccountId (account) {
   return Promise.resolve (account._id || new ObjectId ());
-};
+}
 
 /**
  * @class AccountController
@@ -104,6 +104,7 @@ module.exports = ResourceController.extend ({
     return this._super.call (this, ...arguments).extend ({
       schema: {
         [this.resourceId]: {
+          in: 'params',
           isMongoId: false,
           isMongoIdOrMe: true
         }
@@ -117,39 +118,54 @@ module.exports = ResourceController.extend ({
 
   changePassword () {
     return Action.extend ({
-      execute (req, res) {
+      schema: {
+        [this.resourceId]: {
+          in: 'params',
+          isMongoIdOrMe: true,
+          toMongoId: true
+        },
 
+        'password.current': {
+          in: 'body',
+          notEmpty: true
+        },
+
+        'password.new': {
+          in: 'body',
+          notEmpty: true
+        }
+      },
+
+      execute (req, res) {
+        const currentPassword = req.body.password.current;
+        const newPassword = req.body.password.new;
+        const {accountId} = req.params;
+
+        return this.controller.model.findById (accountId)
+          .then (account => {
+            if (!account)
+              return Promise.reject (new NotFoundError ('unknown_account', 'The account does not exist.'));
+
+            return account.verifyPassword (currentPassword)
+              .then (match => {
+                // If the password does not match, then we can just return an
+                // error message to the client, and stop processing the request.
+                if (!match)
+                  return Promise.reject (new BadRequestError ('invalid_password', 'The current password is invalid.'));
+
+                account.password = newPassword;
+                return account.save ();
+              })
+              .then (() => {
+                res.status (200).json (true);
+              });
+          });
       }
     });
   }
 });
 
 /*
-Account.prototype.update = function () {
-  return ResourceController.prototype.update.call (this, {
-    on: {
-      prepareUpdate: function (req, doc, callback) {
-        // Make sure the update does not include properties that cannot be updated
-        // and/or deleted.
-        // Make sure the update does not include properties that cannot be updated
-        // and/or deleted.
-        if (!req.scope.includes ('gatekeeper.account.update') &&
-          !req.scope.includes ('gatekeeper.account.*') &&
-          ((doc.$set && doc.$set.scope) || (doc.$unset && doc.$unset.scope))) {
-          return callback (new HttpError (403, 'unauthorized', 'You are not authorized to update or delete the scope.'));
-        }
-
-        if (doc.$set && doc.$set.password)
-          return callback (new HttpError (400, 'bad_request', 'You cannot directly change the password.'));
-
-        if (doc.$unset && doc.$unset.password)
-          return callback (new HttpError (400, 'bad_request', 'You cannot delete the password.'));
-
-        return callback (null, doc);
-      }
-    }
-  });
-};
 
 Account.prototype.changePassword = function () {
   return {
