@@ -21,4 +21,4 @@ const {
 module.exports = any ([
   check ('gatekeeper.account.me'),
   check ('gatekeeper.scope', 'gatekeeper.account.get_all'),
-]);
+], 'forbidden_access', 'You do not have access to the account.');
