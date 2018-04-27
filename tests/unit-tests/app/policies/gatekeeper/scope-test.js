@@ -20,58 +20,44 @@ const {
   expect
 } = require ('chai');
 
-describe ('app | policies | gatekeeper | request | scope', function () {
+describe ('app | policies | gatekeeper | scope', function () {
+  function makePolicy (parameters) {
+    let Policy = blueprint.lookup ('policy:gatekeeper.scope');
+    let policy = new Policy ();
+    policy.setParameters (parameters);
+
+    return policy;
+  }
+
   context ('no pattern', function () {
     it ('the policy should pass', function () {
-      let Policy = blueprint.lookup ('policy:gatekeeper.scope');
-
+      let policy = makePolicy ('a.b');
       let req = { scope: ['a.b'] };
-      let policy = new Policy ();
 
-      policy.setParameters ('a.b');
-
-      return policy.runCheck (req).then (result => {
-        expect (err).to.be.null;
-        expect (result).to.be.true;
-      });
+      expect (policy.runCheck (req)).to.be.true;
     });
 
-    it ('the policy should fail', function (done) {
+    it ('the policy should fail', function () {
+      let policy = makePolicy ('a.b');
       let req = { scope: ['a.c'] };
 
-      policy ('a.b', req, (err, result, details) => {
-        expect (err).to.be.null;
-        expect (result).to.be.false;
-        expect (details).to.deep.equal ({reason: 'invalid_scope', message: 'This request does not have a valid scope.'});
-
-        return done (null);
-      });
+      expect (policy.runCheck (req)).to.be.false;
     });
   });
 
   context ('glob pattern', function () {
-    it ('the policy should pass', function (done) {
+    it ('the policy should pass', function () {
+      let policy = makePolicy ('a.b.c');
       let req = { scope: ['a.b.*'] };
 
-      policy ('a.b.c', req, (err, result) => {
-        expect (err).to.be.null;
-        expect (result).to.be.true;
-
-        return done (null);
-      });
+      expect (policy.runCheck (req)).to.be.true;
     });
 
-    it ('the policy should fail', function (done) {
+    it ('the policy should fail', function () {
+      let policy = makePolicy ('a.c.d');
       let req = { scope: ['a.b.*'] };
 
-      policy ('a.c.d', req, (err, result, details) => {
-        expect (err).to.be.null;
-        expect (result).to.be.false;
-        expect (details).to.deep.equal ({reason: 'invalid_scope', message: 'This request does not have a valid scope.'});
-
-        return done (null);
-      });
+      expect (policy.runCheck (req)).to.be.false;
     });
   });
-
 });
