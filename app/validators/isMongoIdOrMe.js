@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-const {
-  isMongoId
-} = require ('validator');
+const blueprint = require ('@onehilltech/blueprint');
+const isMongoId = blueprint.lookup ('validator:isMongoId');
 
 module.exports = function (value) {
   return value === 'me' ? true : isMongoId (value);
