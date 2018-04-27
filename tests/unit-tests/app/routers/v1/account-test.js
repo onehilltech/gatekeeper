@@ -33,7 +33,7 @@ const {
 
 const blueprint = require ('@onehilltech/blueprint');
 
-describe.only ('app | routers | account', function () {
+describe ('app | routers | account', function () {
   describe ('/v1/accounts', function () {
     context ('GET', function () {
       it ('should return all the accounts for glob scope', function () {
