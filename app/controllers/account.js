@@ -16,11 +16,12 @@
 
 const {
   model,
-  HttpError
+  BadRequestError
 } = require ('@onehilltech/blueprint');
 
 const {
-  get
+  get,
+  has
 } = require ('lodash');
 
 const {

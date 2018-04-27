@@ -211,56 +211,60 @@ describe.only ('app | routers | account', function () {
     });
 
     context ('UPDATE', function () {
-      it ('should not update the scope', function (done) {
-        const account = blueprint.app.seeds.$default.accounts[0];
-
-        request ()
-          .put ('/v1/accounts/' + account.id)
-          .withUserToken (2)
-          .send ({account: {scope: ['the_new_scope']}})
-          .expect (403, { errors:
-            [ { code: 'unauthorized',
-              detail: 'You are not authorized to update or delete the scope.',
-              status: '403' } ] }, done);
-      });
-
-      it ('should update the email', function (done) {
-        const account = blueprint.app.seeds.$default.accounts[0];
-
-        let updated = account.lean ();
-        updated.email = 'foo@contact.com';
-
-        request ()
-          .put ('/v1/accounts/' + account.id)
-          .withUserToken (0)
-          .send ({account: {email: updated.email}} )
-          .expect (200, {account: updated}, done);
-      });
-
-      it ('should allow admin to update the scope', function (done) {
-        const account = blueprint.app.seeds.$default.accounts[3];
+      it ('should update the scope', function () {
+        const {accounts} = seed ('$default');
+        const account = accounts[3];
 
         let updated = account.lean ();
         updated.scope.push ('the_new_scope');
 
-        request ()
-          .put ('/v1/accounts/' + account.id)
+        return request ()
+          .put (`/v1/accounts/${account.id}`)
           .withUserToken (0)
           .send ({account: {scope: updated.scope}})
-          .expect (200, {account: updated}, done);
+          .expect (200, {account: updated});
       });
 
-      it ('should not update the password', function (done) {
-        const account = blueprint.app.seeds.$default.accounts[3];
+      it ('should update the email', function () {
+        const {accounts} = seed ('$default');
+        const account = accounts[0];
 
-        request ()
-          .put ('/v1/accounts/' + account.id)
+        let updated = account.lean ();
+        updated.email = 'foo@contact.com';
+
+        return request ()
+          .put (`/v1/accounts/${account.id}`)
+          .withUserToken (0)
+          .send ({account: {email: updated.email}} )
+          .expect (200, {account: updated});
+      });
+
+      it ('should not update the scope', function () {
+        const {accounts} = seed ('$default');
+        const account = accounts[0];
+
+        return request ()
+          .put (`/v1/accounts/${account.id}`)
+          .withUserToken (2)
+          .send ({account: {scope: ['the_new_scope']}})
+          .expect (403, { errors:
+              [ { code: 'invalid_scope',
+                detail: 'You are not allowed to update the account scope.',
+                status: '403' } ] });
+      });
+
+      it ('should not update the password', function () {
+        const {accounts} = seed ('$default');
+        const account = accounts[3];
+
+        return request ()
+          .put (`/v1/accounts/${account.id}`)
           .withUserToken (0)
           .send ({account: {password: '1234567890'}})
-          .expect (400, { errors:
-            [ { code: 'bad_request',
-              detail: 'You cannot directly change the password.',
-              status: '400' } ] }, done);
+          .expect (403, { errors:
+              [ { code: 'forbidden',
+                detail: 'You cannot update or delete the password.',
+                status: '403' } ] });
       });
     });
 

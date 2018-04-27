@@ -15,11 +15,57 @@
  */
 
 const {
-  policies: { check, any }
+  Policy,
+  policies: { check, any, all }
 } = require ('@onehilltech/blueprint');
 
-module.exports = any ([
-  check ('gatekeeper.account.me'),
-  check ('gatekeeper.scope', 'gatekeeper.account.update')
+const {
+  has
+} = require ('lodash');
+
+/**
+ * Policy that prevents the user from updating or deleting the password.
+ */
+const NoUpdatePassword = Policy.extend ({
+  failureCode: 'forbidden',
+  failureMessage: 'You cannot update or delete the password.',
+
+  runCheck (req) {
+    return !has (req.body, 'account.password');
+  }
+});
+
+/**
+ * Policy that limits ability to update scope property on account to tokens
+ * that have the scope update ability.
+ */
+const ScopeUpdatePolicy = Policy.extend ({
+  failureCode: 'invalid_scope',
+  failureMessage: 'You are not allowed to update the account scope.',
+
+  scopePolicy: null,
+
+  init () {
+    this._super.call (this, ...arguments);
+
+    const Policy = this.app.lookup ('policy:gatekeeper.scope');
+    this.scopePolicy = new Policy ({app: this.app});
+    this.scopePolicy.setParameters ('gatekeeper.account.update.scope');
+  },
+
+  runCheck (req) {
+    return has (req.body, 'account.scope') ? this.scopePolicy.runCheck (req) : true;
+  }
+});
+
+module.exports = all ([
+  any ([
+    check ('gatekeeper.account.me'),
+    check ('gatekeeper.scope', 'gatekeeper.account.update'),
+  ]),
+
+  NoUpdatePassword,
+
+  ScopeUpdatePolicy
 ]);
 

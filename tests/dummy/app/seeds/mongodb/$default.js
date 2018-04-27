@@ -60,7 +60,7 @@ module.exports = {
       username: 'account4',
       password: 'account4',
       created_by: dab.ref ('native.0'),
-      scope: []
+      scope: ['gatekeeper.account.update.scope']
     },
     {
       email: 'account5@gatekeeper.com',
