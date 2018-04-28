@@ -33,7 +33,7 @@ const {
   flattenDeep
 } = require ('lodash');
 
-const AccessTokenGenerator = require ('../../../-internal/access-token-generator');
+const AccessTokenGenerator = require ('../../../-internal/token-generators/access-token');
 const BEARER_SCHEME_REGEXP = /^Bearer$/i;
 
 module.exports = Policy.extend ({

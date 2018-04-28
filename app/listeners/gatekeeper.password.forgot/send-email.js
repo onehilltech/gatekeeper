@@ -3,7 +3,7 @@ const messaging = blueprint.messaging;
 const path  = require ('path');
 const async = require ('async');
 const Email = require ('email-templates');
-const ResetPasswordTokenGenerator = require ('../../-internal/password-reset-token-generator');
+const ResetPasswordTokenGenerator = require ('../../-internal/token-generators/password-reset');
 const _ = require ('lodash');
 
 // TODO Construct the real location of the template directory.

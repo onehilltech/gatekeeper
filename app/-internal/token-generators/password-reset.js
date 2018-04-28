@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const TokenGenerator = require ('./-token-generator');
+const TokenGenerator = require ('../token-generator');
 
 /**
  * @class AccessTokenGenerator

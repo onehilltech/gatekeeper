@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2018 One Hill Technologies, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-const path  = require ('path');
-const blueprint = require ('@onehilltech/blueprint');
+const TokenGenerator = require ('../token-generator');
 
-before (function () {
-  const appPath = path.resolve ('./tests/dummy/app');
-  return blueprint.createApplicationAndStart (appPath);
-});
-
-beforeEach (function () {
-  return blueprint.emit ('blueprint.test.start')
-});
-
-afterEach (function () {
-  return blueprint.emit ('blueprint.test.complete');
-});
-
-after (function () {
-  return blueprint.destroyApplication ();
+/**
+ * @class AccountVerificationTokenGenerator
+ */
+module.exports = TokenGenerator.extend ({
+  options: {
+    subject: 'gatekeeper:account:verification',
+    expiresIn: '7d'
+  }
 });

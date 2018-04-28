@@ -21,7 +21,7 @@ const Schema    = mongodb.Schema;
 const ObjectId  = mongodb.Schema.Types.ObjectId;
 const AccessToken = require ('./access-token');
 const Account     = require ('./account');
-const AccessTokenGenerator = require ('../-internal/access-token-generator');
+const AccessTokenGenerator = require ('../-internal/token-generators/access-token');
 
 const {
   props

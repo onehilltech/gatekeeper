@@ -23,7 +23,7 @@ const blueprint = require ('@onehilltech/blueprint');
 const mongodb = require ('@onehilltech/blueprint-mongodb');
 const Schema  = mongodb.Schema;
 const AccessToken = require ('./access-token');
-const AccessTokenGenerator = require ('../-internal/access-token-generator');
+const AccessTokenGenerator = require ('../-internal/token-generators/access-token');
 
 const {
   get

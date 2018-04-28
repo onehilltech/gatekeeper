@@ -5,7 +5,7 @@ const blueprint  = require ('@onehilltech/blueprint')
   , path         = require ('path')
   , async        = require ('async')
   , Email        = require ('email-templates')
-  , verification = require ('../../-internal/account-verification-token-generator')
+  , verification = require ('../../-internal/token-generators/account-verification')
   , _            = require ('lodash')
   ;
 

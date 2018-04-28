@@ -35,7 +35,6 @@ const {
   }
 } = require ('@onehilltech/blueprint-mongodb');
 
-const password = require ('../middleware/granters/password');
 const {
   fromCallback
 } = require ('bluebird');
@@ -86,14 +85,16 @@ module.exports = ResourceController.extend ({
         if (!login)
           return result;
 
-        return fromCallback (callback => {
-          req.client = req.user;
-          req.account = result.account;
+        req.gatekeeperClient = req.user;
+        req.account = result.account;
 
-          return password.createToken (req, callback);
-        }).then (accessToken => accessToken.serialize ())
-          .then (token => {
-            result.token = Object.assign ({token_type: 'Bearer'}, token);
+        let tokenController = this.controller.app.lookup ('controller:oauth2.token');
+        const password = get (tokenController, 'granters.password');
+
+        return password.createToken (req)
+          .then (accessToken => accessToken.serialize ())
+          .then (accessToken => {
+            result.token = Object.assign ({token_type: 'Bearer'}, accessToken);
             return result;
           });
       }

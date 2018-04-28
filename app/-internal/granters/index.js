@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-const TokenGenerator = require ('./-token-generator');
-
-/**
- * @class AccountVerificationTokenGenerator
- */
-module.exports = TokenGenerator.extend ({
-  options: {
-    subject: 'gatekeeper:account:verification',
-    expiresIn: '7d'
-  }
-});
+exports.ClientCredentials = require ('./client_credentials');
+exports.Password = require ('./password');
+exports.RefreshToken = require ('./refresh_token');

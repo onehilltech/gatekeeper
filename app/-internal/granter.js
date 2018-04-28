@@ -14,32 +14,31 @@
  * limitations under the License.
  */
 
+const assert = require ('assert');
+
 const {
-  Policy,
-  model
+  BO
 } = require ('@onehilltech/blueprint');
 
-module.exports = Policy.extend ({
-  failureCode: 'unauthorized_issue',
+/**
+ * @class Granter
+ *
+ * Base class for all granters.
+ */
+module.exports = BO.extend ({
+  name: null,
 
-  failureMessage: 'The client is not able to be issued tokens.',
+  createToken: null,
 
-  Client: model ('client'),
+  /// The options for the token generator.
+  tokenOptions: null,
 
-  runCheck (req) {
-    const {client_id} = req.body;
+  /// Access token generator for the granter.
+  tokenGenerator: null,
 
-    return this.Client.findById (client_id)
-      .then (client => {
-        if (!client)
-          return {failureCode: 'unknown_client', failureMessage: 'The client does not exist.'};
+  init () {
+    this._super.call (this, ...arguments);
 
-        if (client.enabled !== true)
-          return {failureCode: 'client_disabled', failureMessage: 'The client is disabled.'};
-
-        req.gatekeeperClient = client;
-
-        return true;
-      });
+    assert (!!this.tokenGenerator, 'You must define the tokenGenerator property.');
   }
 });
