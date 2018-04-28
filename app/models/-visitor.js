@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-const mongodb = require ('@onehilltech/blueprint-mongodb');
-const Client  = require ('./client');
-const options = require ('./-common-options') ();
+const {
+  BO
+} = require ('@onehilltech/blueprint');
 
-options.discriminatorKey = Client.schema.options.discriminatorKey;
+/**
+ * @class Visitor
+ *
+ * Base class for the model visitors.
+ */
+module.exports = BO.extend ({
+  visitNativeClient (native) {
 
-let schema = new mongodb.Schema ({
-  /// g-recaptcha secret key
-  recaptcha_secret: {type: String, required: true}
-}, options);
+  },
 
-schema.methods.accept = function (v) {
-  v.visitRecaptchaClient (this);
-};
+  visitRecaptchaClient (recaptcha) {
 
-module.exports = Client.discriminator ('recaptcha', schema);
+  },
+
+  visitAndroidClient (android) {
+
+  }
+});

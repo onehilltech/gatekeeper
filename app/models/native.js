@@ -46,4 +46,8 @@ schema.pre ('validate', function () {
   });
 });
 
+schema.methods.accept = function (v) {
+  v.visitNativeClient (this);
+};
+
 module.exports = Client.discriminator ('native', schema);

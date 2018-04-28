@@ -28,4 +28,8 @@ let schema = new mongodb.Schema ({
   package: {type: String, required: true}
 }, options);
 
+schema.methods.accept = function (v) {
+  v.visitAndroidClient (this);
+};
+
 module.exports = Client.discriminator ('android', schema);
