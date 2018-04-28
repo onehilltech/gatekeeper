@@ -36,6 +36,15 @@ module.exports = {
     }
   ],
 
+  android: [
+    {
+      name: 'android1',
+      client_secret: 'android1',
+      email: 'android1@gatekeeper.com',
+      package: 'com.onehilltech.gatekeeper',
+    }
+  ],
+
   accounts: [
     {
       email: 'hilljh82@gmail.com',

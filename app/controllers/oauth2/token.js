@@ -17,18 +17,27 @@
 const blueprint = require ('@onehilltech/blueprint');
 
 const {
+  checkSchema
+} = require('express-validator/check');
+
+const {
   Controller,
   Action,
   BadRequestError,
+  ForbiddenError,
+  model,
 } = require ('@onehilltech/blueprint');
 
 const Granters = require ('../../-internal/granters');
 const AccessTokenGenerator = require ('../../-internal/token-generators/access-token');
 
 const {
+  fromCallback
+} = require ('bluebird');
+
+const {
   get,
-  transform,
-  values
+  transform
 } = require ('lodash');
 
 /**
@@ -41,7 +50,9 @@ const {
  */
 module.exports = Controller.extend ({
   grantTypes: blueprint.computed ({
-    get () { return Object.keys (this.granters); }
+    get () {
+      return Object.keys (this.granters);
+    }
   }),
 
   /// Collection of granters supported by the controller.
@@ -69,26 +80,66 @@ module.exports = Controller.extend ({
   issueToken () {
     return Action.extend ({
       schema: {
+        client_id: {
+          in: 'body',
+          isLength: {
+            options: {min: 1},
+            errorMessage: 'The field is required.'
+          },
+          isMongoId: {
+            errorMessage: 'The field is not valid.'
+          }
+        },
+
         grant_type: {
           in: 'body',
+          isLength: {
+            options: {min: 1},
+            errorMessage: 'The field is required.'
+          },
           isIn: {
             errorMessage: 'The grant type is not supported.',
             options: [this.grantTypes]
           }
         },
+      },
 
-        client_id: {
-          in: 'body',
-          notEmpty: true,
-          isMongoId: {
-            errorMessage: 'The client id is not valid.'
-          }
-        }
+      Client: model ('client'),
+
+      validate (req) {
+        // We also need to validate the request based on the client making the
+        // request. For example, the native client will have different requirements
+        // than the recaptcha client. So, let's locate the client in the database,
+        // and all allow the granter to validate the request on per client basis.
+
+        const {client_id} = req.body;
+
+        return this.Client.findById (client_id).then (client => {
+          if (!client)
+            return Promise.reject (new BadRequestError ('unknown_client', 'The client does not exist.'));
+
+          if (!client.enabled)
+            return Promise.reject (new ForbiddenError ('client_disabled', 'The client is disabled.'));
+
+          req.gatekeeperClient = client;
+
+          const granter = this.granterFor (req);
+          const granterSchema = granter.schemaFor (client);
+
+          if (!granterSchema)
+            return;
+
+          const checks = checkSchema (granterSchema);
+          const promises = checks.map (middleware => fromCallback (callback => {
+            middleware.call (null, req, {}, callback);
+          }));
+
+          return Promise.all (promises);
+        });
       },
 
       execute (req, res) {
-        const {grant_type} = req.body;
-        const granter = this.controller.granters[grant_type];
+        const granter = this.granterFor (req);
 
         return granter.createToken (req)
           .then (accessToken => accessToken.serialize (this.tokenGenerator))
@@ -96,6 +147,11 @@ module.exports = Controller.extend ({
             const ret = Object.assign ({token_type: 'Bearer'}, accessToken);
             res.status (200).json (ret);
           });
+      },
+
+      granterFor (req) {
+        const {grant_type} = req.body;
+        return this.controller.granters[grant_type];
       }
     });
   },

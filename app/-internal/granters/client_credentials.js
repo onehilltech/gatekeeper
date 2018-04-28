@@ -15,11 +15,36 @@
  */
 
 const Granter = require ('../granter');
+const ModelVisitor = require ('../../models/-visitor');
+
+const {
+  merge
+} = require ('lodash');
 
 const {
   model,
-  BadRequestError
+  BadRequestError,
 } = require ('@onehilltech/blueprint');
+
+const SCHEMA_NATIVE_CLIENT = {
+  client_secret: {
+    in: 'body',
+    isLength: {
+      options: { min: 1 },
+      errorMessage: 'This field is required.'
+    }
+  }
+};
+
+const SCHEMA_ANDROID_CLIENT = merge ({
+  package: {
+    in: 'body',
+    isLength: {
+      options: { min: 1 },
+      errorMessage: 'This field is required.'
+    }
+  }
+}, SCHEMA_NATIVE_CLIENT);
 
 /**
  * @class ClientCredentials
@@ -54,5 +79,23 @@ module.exports = Granter.extend ({
       doc.origin = origin;
 
     return this.ClientToken.create (doc);
+  },
+
+  schemaFor (client) {
+    let v = new ModelVisitor ({
+      schema: null,
+
+      visitNativeClient () {
+        this.schema = SCHEMA_NATIVE_CLIENT;
+      },
+
+      visitAndroidClient () {
+        this.schema = SCHEMA_ANDROID_CLIENT;
+      }
+    });
+
+    client.accept (v);
+
+    return v.schema;
   }
 });

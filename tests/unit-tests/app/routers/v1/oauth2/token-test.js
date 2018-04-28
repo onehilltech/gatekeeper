@@ -35,197 +35,266 @@ function getToken (data) {
     .then (res => res.body);
 }
 
-describe ('app | routers | oauth2 | token', function () {
+describe.only ('app | routers | oauth2 | token', function () {
   describe ('/token', function () {
     const TOKEN_URL = '/v1/oauth2/token';
 
-    describe ('password', function () {
-      it ('should get a token for the username/password', function () {
-        const {native,accounts} = seed ('$default');
-        const account = accounts[1];
-        const client = native[0];
+    it ('should fail because of bad grant_type', function () {
+      const {native} = seed ('$default');
+      const client = native[0];
 
-        const data = {
-          grant_type: 'password',
-          username: account.username,
-          password: account.username,
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
+      const data = {
+        client_id: client.id,
+        grant_type: 'a',
+      };
 
-        return getToken (data).then (token => {
-          expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
-          expect (token).to.have.property ('token_type', 'Bearer');
-        });
-      });
-
-      it ('should grant a token bound to an origin', function () {
-        const {native, accounts} = seed ('$default');
-        const account = accounts[1];
-        const client = native[0];
-
-        const data = {
-          grant_type: 'password',
-          username: account.username,
-          password: account.username,
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
-
-        return getToken (data).then (token => {
-          expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
-          expect (token).to.have.property ('token_type', 'Bearer');
-        });
-      });
-
-      it ('should return 400 for missing grant_type', function () {
-        const {native, accounts} = seed ('$default');
-        const account = accounts[0];
-        const client = native[0];
-
-        const data = {
-          username: account.username,
-          password: account.password,
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
-
-
-       return request ()
-          .post (TOKEN_URL)
-          .send (data)
-          .expect (400, { errors:
-              [ { code: 'validation_failed',
-                detail: 'The request validation failed.',
-                status: '400',
-                meta: {
-                  validation: {
-                    grant_type: {
-                      location: "body",
-                      msg: "The grant type is not supported.",
-                      param: "grant_type"
-                    }
+      return request ()
+        .post (TOKEN_URL)
+        .send (data)
+        .expect (400, { errors:
+            [ { code: 'validation_failed',
+              detail: 'The request validation failed.',
+              status: '400',
+              meta: {
+                validation: {
+                  grant_type: {
+                    location: "body",
+                    msg: "The grant type is not supported.",
+                    param: "grant_type",
+                    value: 'a'
                   }
-                } }] });
+                }
+              } }] });
+    });
+
+    it ('should fail because client is disabled', function () {
+      const {native, accounts} = seed ('$default');
+      const account = accounts[0];
+      const client = native[2];
+
+      const data = {
+        grant_type: 'password',
+        username: account.username,
+        password: account.password,
+        client_id: client.id,
+        client_secret: client.client_secret
+      };
+
+      return request ()
+        .post (TOKEN_URL)
+        .send (data)
+        .expect (403, { errors:
+            [ { code: 'client_disabled',
+              detail: 'The client is disabled.',
+              status: '403' } ] });
+    });
+
+    describe ('password', function () {
+      context ('native', function () {
+        it ('should grant token for the username/password', function () {
+          const {native,accounts} = seed ('$default');
+          const account = accounts[1];
+          const client = native[0];
+
+          const data = {
+            grant_type: 'password',
+            username: account.username,
+            password: account.username,
+            client_id: client.id,
+            client_secret: client.client_secret
+          };
+
+          return getToken (data).then (token => {
+            expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
+            expect (token).to.have.property ('token_type', 'Bearer');
+          });
+        });
+
+        it ('should grant token bound to an origin', function () {
+          const {native, accounts} = seed ('$default');
+          const account = accounts[1];
+          const client = native[0];
+
+          const data = {
+            grant_type: 'password',
+            username: account.username,
+            password: account.username,
+            client_id: client.id,
+            client_secret: client.client_secret
+          };
+
+          return getToken (data).then (token => {
+            expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
+            expect (token).to.have.property ('token_type', 'Bearer');
+          });
+        });
+
+        it ('should fail because account is disabled', function () {
+          const {native, accounts} = seed ('$default');
+          const account = accounts[4];
+          const client = native[0];
+
+          const data = {
+            grant_type: 'password',
+            username: account.username,
+            password: account.password,
+            client_id: client.id,
+            client_secret: client.client_secret
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, { errors:
+                [ { code: 'account_disabled',
+                  detail: 'The account is disabled.',
+                  status: '400' } ] });
+        });
+
+        it ('should fail because password is incorrect', function () {
+          const {native, accounts} = seed ('$default');
+          const account = accounts[1];
+          const client = native[0];
+
+          const data = {
+            grant_type: 'password',
+            username: account.username,
+            password: 'incorrect_password',
+            client_id: client.id,
+            client_secret: client.client_secret
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, {errors: [{status: '400', code: 'invalid_password', detail: 'The password for the account is incorrect.'}]});
+        });
       });
 
-      it ('should not grant token because client is disabled', function () {
-        const {native, accounts} = seed ('$default');
-        const account = accounts[0];
-        const client = native[2];
+      context ('android', function () {
 
-        const data = {
-          grant_type: 'password',
-          username: account.username,
-          password: account.password,
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
-
-       return request ()
-          .post (TOKEN_URL)
-          .send (data)
-          .expect (403, { errors:
-              [ { code: 'client_disabled',
-                detail: 'The client is disabled.',
-                status: '403' } ] });
-      });
-
-      it ('should not grant token because account is disabled', function () {
-        const {native, accounts} = seed ('$default');
-        const account = accounts[4];
-        const client = native[0];
-
-        const data = {
-          grant_type: 'password',
-          username: account.username,
-          password: account.password,
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
-
-       return request ()
-          .post (TOKEN_URL)
-          .send (data)
-          .expect (400, { errors:
-              [ { code: 'account_disabled',
-                detail: 'The account is disabled.',
-                status: '400' } ] });
-      });
-
-      it ('should not grant token because password is incorrect', function () {
-        const {native, accounts} = seed ('$default');
-        const account = accounts[1];
-        const client = native[0];
-
-        const data = {
-          grant_type: 'password',
-          username: account.username,
-          password: 'incorrect_password',
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
-
-       return request ()
-          .post (TOKEN_URL)
-          .send (data)
-          .expect (400, {errors: [{status: '400', code: 'invalid_password', detail: 'The password for the account is incorrect.'}]});
       });
     });
 
     describe ('client_credentials', function () {
-      it ('should get a token for client credentials', function () {
-        const {native} = seed ('$default');
-        const client = native[0];
+      context ('native', function () {
+        it ('should get token for client credentials', function () {
+          const {native} = seed ('$default');
+          const client = native[0];
 
-        const data = {
-          grant_type: 'client_credentials',
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            client_secret: client.client_secret
+          };
 
-        return getToken (data).then (token => {
-          expect (token).to.have.all.keys (['token_type', 'access_token']);
-          expect (token).to.have.property ('token_type', 'Bearer');
+          return getToken (data).then (token => {
+            expect (token).to.have.all.keys (['token_type', 'access_token']);
+            expect (token).to.have.property ('token_type', 'Bearer');
+          });
+        });
+
+        it ('should fail because of missing fields', function () {
+          const {native} = seed ('$default');
+          const client = native[0];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, { errors:
+                [ { code: 'validation_failed',
+                  detail: 'The request validation failed.',
+                  status: '400',
+                  meta: {
+                    validation: {
+                      client_secret: {
+                        location: 'body',
+                        msg: 'This field is required.',
+                        param: 'client_secret'
+                      }
+                    }
+                  }
+            } ] });
+        });
+
+        it ('should fail because client is disabled', function () {
+          const {native} = seed ('$default');
+          const client = native[2];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            client_secret: client.client_secret
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send(data)
+            .expect (403, { errors:
+                [ { code: 'client_disabled',
+                  detail: 'The client is disabled.',
+                  status: '403' } ] });
+        });
+
+        it ('should fail because incorrect secret', function () {
+          const {native} = seed ('$default');
+          const client = native[0];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            client_secret: 'bad_secret'
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, { errors:
+                [ { code: 'invalid_secret',
+                  detail: 'The client secret is not valid.',
+                  status: '400' } ] });
         });
       });
 
-      it ('should not grant token because client is disabled', function () {
-        const {native} = seed ('$default');
-        const client = native[2];
+      context ('android', function () {
+        it ('should fail because of missing fields', function () {
+          const {android} = seed ('$default');
+          const client = android[0];
 
-        const data = {
-          grant_type: 'client_credentials',
-          client_id: client.id,
-          client_secret: client.client_secret
-        };
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+          };
 
-       return request ()
-         .post (TOKEN_URL)
-         .send(data)
-         .expect (403, { errors:
-             [ { code: 'client_disabled',
-               detail: 'The client is disabled.',
-               status: '403' } ] });
-      });
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, { errors:
+                [ { code: 'validation_failed',
+                  detail: 'The request validation failed.',
+                  status: '400',
+                  meta: {
+                    validation: {
+                      client_secret: {
+                        location: 'body',
+                        msg: 'This field is required.',
+                        param: 'client_secret'
+                      },
 
-      it ('should not grant token because incorrect secret', function () {
-        const {native} = seed ('$default');
-        const client = native[0];
-
-        const data = {
-          grant_type: 'client_credentials',
-          client_id: client.id,
-          client_secret: 'bad_secret'
-        };
-
-       return request ()
-          .post (TOKEN_URL)
-          .send (data)
-          .expect (400, { errors:
-              [ { code: 'invalid_secret',
-                detail: 'The client secret is not valid.',
-                status: '400' } ] });
+                      package: {
+                        location: 'body',
+                        msg: 'This field is required.',
+                        param: 'package'
+                      }
+                    }
+                  }
+                } ] });
+        });
       });
     });
 

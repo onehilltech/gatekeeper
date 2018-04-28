@@ -40,5 +40,15 @@ module.exports = BO.extend ({
     this._super.call (this, ...arguments);
 
     assert (!!this.tokenGenerator, 'You must define the tokenGenerator property.');
+  },
+
+  /**
+   * Get the schema for the request.
+   *
+   * @param client        The client model.
+   * @returns {null}
+   */
+  schemaFor (client) {
+    return null;
   }
 });

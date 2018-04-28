@@ -28,7 +28,7 @@ const {
 const async = require ('async');
 const ResetPasswordTokenGenerator = require ('../../../../../app/-internal/token-generators/password-reset');
 
-describe.only ('app | routers | password', function () {
+describe ('app | routers | password', function () {
   let tokenGenerator;
 
   before (function () {
