@@ -30,7 +30,7 @@ const DEFAULT_SECRET_LENGTH = 128;
 
 const schema = new mongodb.Schema ({
   /// The client secret, which can be auto-generated.
-  client_secret: {type: String, required: true, validation: {optional: true}}
+  client_secret: {type: String, required: true, validation: {optional: true}},
 }, options);
 
 /**

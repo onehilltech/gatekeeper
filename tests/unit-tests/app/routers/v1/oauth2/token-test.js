@@ -353,6 +353,26 @@ describe.only ('app | routers | oauth2 | token', function () {
                   detail: 'The package does not match the client.',
                   status: '400' } ] });
         });
+
+        it ('should fail because of invalid client secret', function () {
+          const {android} = seed ('$default');
+          const client = android[0];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            client_secret: 'bad_secret',
+            package: client.package
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, { errors:
+                [ { code: 'invalid_secret',
+                  detail: 'The client secret is not valid.',
+                  status: '400' } ] });
+        });
       });
     });
 

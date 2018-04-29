@@ -22,7 +22,10 @@ options.discriminatorKey = Client.schema.options.discriminatorKey;
 
 let schema = new mongodb.Schema ({
   /// g-recaptcha secret key
-  recaptcha_secret: {type: String, required: true}
+  recaptcha_secret: {type: String, required: true},
+
+  /// The expected origin of the request.
+  origin: {type: String, required: true},
 }, options);
 
 schema.methods.accept = function (v) {

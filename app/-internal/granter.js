@@ -50,5 +50,9 @@ module.exports = BO.extend ({
    */
   schemaFor (client) {
     return null;
+  },
+
+  validate (req) {
+
   }
 });

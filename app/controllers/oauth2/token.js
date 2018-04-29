@@ -128,16 +128,21 @@ module.exports = Controller.extend ({
 
           req.gatekeeperClient = client;
 
+          // Let's validate the schema for the granter. We consider this the
+          // static validation for the granter.
+
           const granter = this.granterFor (req);
           const granterSchema = granter.schemaFor (client);
 
-          if (!granterSchema)
-            return;
+          let promises = [];
 
-          const checks = checkSchema (granterSchema);
-          const promises = checks.map (middleware => fromCallback (callback => {
-            middleware.call (null, req, {}, callback);
-          }));
+          if (granterSchema) {
+            const checks = checkSchema (granterSchema);
+
+            promises = checks.map (middleware => fromCallback (callback => {
+              middleware.call (null, req, {}, callback);
+            }));
+          }
 
           return Promise.all (promises).then (() => {
             // We are checking the validation result now because we want to return
@@ -153,7 +158,8 @@ module.exports = Controller.extend ({
 
             // The last part of the validation is performing any dynamic validation
             // based on the client. This validation is independent of the grant type
-            // for the request.
+            // for the request. Afterwards, we are going to allow the granter to perform
+            // any dynamic, context-specific validation.
             const v = new ModelVisitor ({
               promise: null,
 
@@ -164,12 +170,26 @@ module.exports = Controller.extend ({
 
                 if (packageName !== client.package)
                   this.promise = Promise.reject (new BadRequestError ('invalid_package', 'The package does not match the client.'));
+              },
+
+              visitRecaptchaClient (client) {
+                // For all reCAPTCHA clients requesting a token, the origin of the
+                // request must match the origin of the client on record.
+
+                let origin = req.get ('origin');
+
+                if (!origin)
+                  this.promise = Promise.reject (new BadRequestError ('unknown_origin', 'The request is missing its origin.'));
+
+                if (origin !== client.origin)
+                  this.promise = Promise.reject (new BadRequestError ('invalid_origin', 'The origin of the request does not match the client.'));
               }
             });
 
             client.accept (v);
 
-            return Promise.resolve (v.promise);
+            return Promise.resolve (v.promise)
+              .then (() => granter.validate (req));
           });
         });
       },

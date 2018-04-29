@@ -63,10 +63,6 @@ module.exports = Granter.extend ({
    */
   createToken (req) {
     const {gatekeeperClient} = req;
-    const {client_secret} = req.body;
-
-    if (gatekeeperClient.client_secret !== client_secret)
-      return Promise.reject (new BadRequestError ('invalid_secret', 'The client secret is not valid.'));
 
     const doc = {
       client: gatekeeperClient._id,
@@ -97,5 +93,28 @@ module.exports = Granter.extend ({
     client.accept (v);
 
     return v.schema;
+  },
+
+  validate (req) {
+    const {gatekeeperClient} = req;
+
+    let v = new ModelVisitor ({
+      promise: null,
+
+      visitNativeClient (client) {
+        const {client_secret} = req.body;
+
+        if (client.client_secret !== client_secret)
+          this.promise = Promise.reject (new BadRequestError ('invalid_secret', 'The client secret is not valid.'));
+      },
+
+      visitAndroidClient (client) {
+        this.visitNativeClient (client);
+      }
+    });
+
+    gatekeeperClient.accept (v);
+
+    return v.promise;
   }
 });
