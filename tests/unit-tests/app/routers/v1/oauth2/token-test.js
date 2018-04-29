@@ -26,9 +26,11 @@ const {
   expect
 } = require ('chai');
 
+const TOKEN_URL = '/v1/oauth2/token';
+
 function getToken (data) {
   return request ()
-    .post ('/v1/oauth2/token')
+    .post (TOKEN_URL)
     .send (data)
     .expect (200)
     .expect ('Content-Type', /json/)
@@ -37,8 +39,6 @@ function getToken (data) {
 
 describe.only ('app | routers | oauth2 | token', function () {
   describe ('/token', function () {
-    const TOKEN_URL = '/v1/oauth2/token';
-
     it ('should fail because of bad grant_type', function () {
       const {native} = seed ('$default');
       const client = native[0];
@@ -91,7 +91,7 @@ describe.only ('app | routers | oauth2 | token', function () {
 
     describe ('password', function () {
       context ('native', function () {
-        it ('should grant token for the username/password', function () {
+        it ('should grant token', function () {
           const {native,accounts} = seed ('$default');
           const account = accounts[1];
           const client = native[0];
@@ -110,7 +110,7 @@ describe.only ('app | routers | oauth2 | token', function () {
           });
         });
 
-        it ('should grant token bound to an origin', function () {
+        it ('should fail because password is incorrect', function () {
           const {native, accounts} = seed ('$default');
           const account = accounts[1];
           const client = native[0];
@@ -118,15 +118,15 @@ describe.only ('app | routers | oauth2 | token', function () {
           const data = {
             grant_type: 'password',
             username: account.username,
-            password: account.username,
+            password: 'incorrect_password',
             client_id: client.id,
             client_secret: client.client_secret
           };
 
-          return getToken (data).then (token => {
-            expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
-            expect (token).to.have.property ('token_type', 'Bearer');
-          });
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, {errors: [{status: '400', code: 'invalid_password', detail: 'The password for the account is incorrect.'}]});
         });
 
         it ('should fail because account is disabled', function () {
@@ -149,25 +149,6 @@ describe.only ('app | routers | oauth2 | token', function () {
                 [ { code: 'account_disabled',
                   detail: 'The account is disabled.',
                   status: '400' } ] });
-        });
-
-        it ('should fail because password is incorrect', function () {
-          const {native, accounts} = seed ('$default');
-          const account = accounts[1];
-          const client = native[0];
-
-          const data = {
-            grant_type: 'password',
-            username: account.username,
-            password: 'incorrect_password',
-            client_id: client.id,
-            client_secret: client.client_secret
-          };
-
-          return request ()
-            .post (TOKEN_URL)
-            .send (data)
-            .expect (400, {errors: [{status: '400', code: 'invalid_password', detail: 'The password for the account is incorrect.'}]});
         });
       });
 
