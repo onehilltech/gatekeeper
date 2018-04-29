@@ -31,6 +31,18 @@ const {
   }
 } = require ('@onehilltech/blueprint-mongodb');
 
+const ModelVisitor = require ('../../models/-visitor');
+
+const SCHEMA_ANDROID_CLIENT = {
+  package: {
+    in: 'body',
+    isLength: {
+      options: { min: 1 },
+      errorMessage: 'This field is required.'
+    }
+  }
+};
+
 /**
  * @class Password
  *
@@ -41,6 +53,20 @@ module.exports = Granter.extend ({
 
   Account: model ('account'),
   UserToken: model ('user-token'),
+
+  schemaFor (client) {
+    let v = new ModelVisitor ({
+      schema: null,
+
+      visitAndroidClient () {
+        this.schema = SCHEMA_ANDROID_CLIENT;
+      }
+    });
+
+    client.accept (v);
+
+    return v.schema;
+  },
 
   /**
    * Create the UserToken for the request.

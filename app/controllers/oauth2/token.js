@@ -30,6 +30,7 @@ const {
 
 const Granters = require ('../../-internal/granters');
 const AccessTokenGenerator = require ('../../-internal/token-generators/access-token');
+const ModelVisitor = require ('../../models/-visitor');
 
 const {
   fromCallback
@@ -39,6 +40,10 @@ const {
   get,
   transform
 } = require ('lodash');
+
+const {
+  validationResult
+} = require ('express-validator/check');
 
 /**
  * @class TokenController
@@ -134,7 +139,38 @@ module.exports = Controller.extend ({
             middleware.call (null, req, {}, callback);
           }));
 
-          return Promise.all (promises);
+          return Promise.all (promises).then (() => {
+            // We are checking the validation result now because we want to return
+            // the proper error message if there were any validation errors related
+            // to the schema definitions. If we do not put this check here, then we
+            // run the risk of the dynamic validation generating a error that will
+            // take priority over the schema validation errors.
+
+            const errors = validationResult (req);
+
+            if (!errors.isEmpty ())
+              return;
+
+            // The last part of the validation is performing any dynamic validation
+            // based on the client. This validation is independent of the grant type
+            // for the request.
+            const v = new ModelVisitor ({
+              promise: null,
+
+              visitAndroidClient (client) {
+                // We are going to make sure the package name matches the
+                // package of the client.
+                const packageName = req.body.package;
+
+                if (packageName !== client.package)
+                  this.promise = Promise.reject (new BadRequestError ('invalid_package', 'The package does not match the client.'));
+              }
+            });
+
+            client.accept (v);
+
+            return Promise.resolve (v.promise);
+          });
         });
       },
 
