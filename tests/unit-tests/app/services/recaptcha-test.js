@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { expect, fail } = require ('chai');
+const { expect } = require ('chai');
 const blueprint = require ('@onehilltech/blueprint');
 const {BadRequestError} = blueprint;
 
