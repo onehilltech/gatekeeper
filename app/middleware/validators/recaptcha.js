@@ -3,8 +3,9 @@
 module.exports = {
   recaptcha: {
     in: 'body',
-    notEmpty: {
-      errorMessage: 'Missing recaptcha value'
+    isLength: {
+      options: {min: 1},
+      errorMessage: 'This field is required.'
     }
   }
 };

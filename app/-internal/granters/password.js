@@ -43,6 +43,16 @@ const SCHEMA_ANDROID_CLIENT = {
   }
 };
 
+const SCHEMA_RECAPTCHA_CLIENT = {
+  recaptcha: {
+    in: 'body',
+    isLength: {
+      options: {min: 1},
+      errorMessage: 'This field is required.'
+    }
+  }
+};
+
 /**
  * @class Password
  *
@@ -60,6 +70,10 @@ module.exports = Granter.extend ({
 
       visitAndroidClient () {
         this.schema = SCHEMA_ANDROID_CLIENT;
+      },
+
+      visitRecaptchaClient () {
+        this.schema = SCHEMA_RECAPTCHA_CLIENT;
       }
     });
 

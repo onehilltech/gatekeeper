@@ -46,6 +46,16 @@ const SCHEMA_ANDROID_CLIENT = merge ({
   }
 }, SCHEMA_NATIVE_CLIENT);
 
+const SCHEMA_RECAPTCHA_CLIENT = {
+  recaptcha: {
+    in: 'body',
+    isLength: {
+      options: {min: 1},
+      errorMessage: 'This field is required.'
+    }
+  }
+};
+
 /**
  * @class ClientCredentials
  *
@@ -87,6 +97,10 @@ module.exports = Granter.extend ({
 
       visitAndroidClient () {
         this.schema = SCHEMA_ANDROID_CLIENT;
+      },
+
+      visitRecaptchaClient () {
+        this.schema = SCHEMA_RECAPTCHA_CLIENT;
       }
     });
 
