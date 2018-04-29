@@ -334,40 +334,25 @@ describe.only ('app | routers | oauth2 | token', function () {
                 } ] });
         });
 
-        it ('should fail because of missing fields', function () {
+        it ('should fail because of invalid package', function () {
           const {android} = seed ('$default');
           const client = android[0];
 
           const data = {
             grant_type: 'client_credentials',
             client_id: client.id,
+            client_secret: client.client_secret,
+            package: 'a.b'
           };
 
           return request ()
             .post (TOKEN_URL)
             .send (data)
             .expect (400, { errors:
-                [ { code: 'validation_failed',
-                  detail: 'The request validation failed.',
-                  status: '400',
-                  meta: {
-                    validation: {
-                      client_secret: {
-                        location: 'body',
-                        msg: 'This field is required.',
-                        param: 'client_secret'
-                      },
-
-                      package: {
-                        location: 'body',
-                        msg: 'This field is required.',
-                        param: 'package'
-                      }
-                    }
-                  }
-                } ] });
+                [ { code: 'invalid_package',
+                  detail: 'The package does not match the client.',
+                  status: '400' } ] });
         });
-
       });
     });
 
