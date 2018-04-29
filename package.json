@@ -30,6 +30,7 @@
     "prompt": "^1.0.0",
     "pug": "^2.0.0-rc.4",
     "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
     "uid-safe": "^2.1.5",
     "yargs": "^10.0.3"
   },
