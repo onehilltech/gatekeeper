@@ -26,11 +26,14 @@ const {
   BadRequestError,
   ForbiddenError,
   model,
+  env,
 } = require ('@onehilltech/blueprint');
 
 const Granters = require ('../../-internal/granters');
 const AccessTokenGenerator = require ('../../-internal/token-generators/access-token');
 const ModelVisitor = require ('../../models/-visitor');
+
+const mm = require ('micromatch');
 
 const {
   fromCallback
@@ -173,16 +176,26 @@ module.exports = Controller.extend ({
               },
 
               visitRecaptchaClient (client) {
-                // For all reCAPTCHA clients requesting a token, the origin of the
-                // request must match the origin of the client on record.
+                // For all reCAPTCHA clients requesting a token, the origin of the request
+                // must match the origin of the client on record. This only applies when we
+                // are not in the test environment.
 
-                let origin = req.get ('origin');
+                if (env !== 'test') {
+                  let origin = req.get ('origin');
 
-                if (!origin)
-                  this.promise = Promise.reject (new BadRequestError ('unknown_origin', 'The request is missing its origin.'));
+                  if (origin) {
+                    // The origin in the request is a string. The origin in the client model
+                    // can be a pattern. This will allow a single client model to handle requests
+                    // from different clients on the same domain.
+                    const isMatch = mm.isMatch (origin, client.origin);
 
-                if (origin !== client.origin)
-                  this.promise = Promise.reject (new BadRequestError ('invalid_origin', 'The origin of the request does not match the client.'));
+                    if (!isMatch)
+                      this.promise = Promise.reject (new BadRequestError ('invalid_origin', 'The origin of the request does not match the client.'));
+                  }
+                  else {
+                    this.promise = Promise.reject (new BadRequestError ('unknown_origin', 'The request is missing its origin.'));
+                  }
+                }
               }
             });
 

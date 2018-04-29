@@ -45,6 +45,25 @@ module.exports = {
     }
   ],
 
+  recaptcha: [
+    {
+      name: 'recaptcha1',
+      recaptcha_secret: '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe',
+      email: 'james@onehilltech.com',
+      scope: ['gatekeeper.account.create'],
+      origin: 'http://localhost'
+    },
+
+    {
+      name: 'recaptcha2',
+      recaptcha_secret: 'invalid-secret',
+      email: 'james@onehilltech.com',
+      scope: ['gatekeeper.account.create'],
+      origin: 'http://localhost'
+    }
+  ],
+
+
   accounts: [
     {
       email: 'hilljh82@gmail.com',

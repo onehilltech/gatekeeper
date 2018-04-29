@@ -28,10 +28,12 @@ const {
 
 const TOKEN_URL = '/v1/oauth2/token';
 
+function requestToken (data) {
+  return request ().post (TOKEN_URL).send (data)
+}
+
 function getToken (data) {
-  return request ()
-    .post (TOKEN_URL)
-    .send (data)
+  return requestToken (data)
     .expect (200)
     .expect ('Content-Type', /json/)
     .then (res => res.body);
@@ -191,6 +193,80 @@ describe.only ('app | routers | oauth2 | token', function () {
                 [ { code: 'invalid_package',
                   detail: 'The package does not match the client.',
                   status: '400' } ] });
+        });
+      });
+
+      context ('recaptcha', function () {
+        it ('should grant token', function () {
+          const {recaptcha,accounts} = seed ('$default');
+          const client = recaptcha[0];
+          const account = accounts[0];
+
+          const data = {
+            grant_type: 'password',
+            client_id: client.id,
+            recaptcha: 'random-response-that-always-succeeds',
+            username: account.username,
+            password: account.username,
+          };
+
+          return getToken (data).then (token => {
+            expect (token).to.have.keys (['token_type','access_token','refresh_token']);
+          });
+        });
+
+        it ('should fail because missing recaptcha response', function () {
+          const {recaptcha,accounts} = seed ('$default');
+          const client = recaptcha[0];
+          const account = accounts[0];
+
+          const data = {
+            grant_type: 'password',
+            client_id: client.id,
+            username: account.username,
+            password: account.username,
+          };
+
+          return requestToken (data)
+            .expect (400, { errors:
+                [ { code: 'validation_failed',
+                  detail: 'The request validation failed.',
+                  status: '400',
+                  meta: {
+                    validation: {
+                      recaptcha: {
+                        location: "body",
+                        msg: "This field is required.",
+                        param: "recaptcha"
+                      }
+                    }
+                  } } ] });
+        });
+
+        it ('should fail because verification failed', function () {
+          const {recaptcha,accounts} = seed ('$default');
+          const client = recaptcha[1];
+          const account = accounts[0];
+
+          const data = {
+            grant_type: 'password',
+            client_id: client.id,
+            recaptcha: 'this-is-a-random-response',
+            username: account.username,
+            password: account.username,
+          };
+
+          return requestToken (data)
+            .expect (400, { errors:
+                [ { code: 'recaptcha_failed',
+                  detail: 'Failed to verify the reCAPTCHA response.',
+                  status: '400',
+                  meta: {
+                    'error-codes': [
+                      'invalid-input-response',
+                      'invalid-input-secret'
+                    ]
+                  } } ] });
         });
       });
     });

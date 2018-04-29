@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright (c) 2018 One Hill Technologies, LLC
  *
@@ -14,20 +16,9 @@
  * limitations under the License.
  */
 
-const cors = require ('cors');
-const {env} = require ('@onehilltech/blueprint');
+const blueprint = require ('@onehilltech/blueprint');
 
-const corsOptions = {
-
-};
-
-if (env === 'test') {
-  //corsOptions.origin = true;
-  corsOptions.credentials = true;
-}
-
-module.exports = {
-  '/v1': {
-    use: [cors (corsOptions)]
-  }
-};
+blueprint.createApplicationAndStart (__dirname)
+  .then (() => {
+    console.log ('The application is started.');
+  });

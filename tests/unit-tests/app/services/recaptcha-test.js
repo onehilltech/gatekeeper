@@ -20,7 +20,7 @@ const {BadRequestError} = blueprint;
 
 const RECAPTCHA_SECRET = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
 
-describe.only ('app | services | recaptcha', function () {
+describe ('app | services | recaptcha', function () {
   describe ('verifyResponse', function () {
     it ('should verify the response', function () {
       let recaptcha = blueprint.lookup ('service:recaptcha');
