@@ -260,6 +260,25 @@ describe.only ('app | routers | oauth2 | token', function () {
             } ] });
         });
 
+        it ('should fail because of invalid client secret', function () {
+          const {native} = seed ('$default');
+          const client = native[0];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            client_secret: 'bad_secret'
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .expect (400, { errors:
+                [ { code: 'invalid_secret',
+                  detail: 'The client secret is not valid.',
+                  status: '400' } ] });
+        });
+
         it ('should fail because client is disabled', function () {
           const {native} = seed ('$default');
           const client = native[2];
@@ -277,25 +296,6 @@ describe.only ('app | routers | oauth2 | token', function () {
                 [ { code: 'client_disabled',
                   detail: 'The client is disabled.',
                   status: '403' } ] });
-        });
-
-        it ('should fail because incorrect secret', function () {
-          const {native} = seed ('$default');
-          const client = native[0];
-
-          const data = {
-            grant_type: 'client_credentials',
-            client_id: client.id,
-            client_secret: 'bad_secret'
-          };
-
-          return request ()
-            .post (TOKEN_URL)
-            .send (data)
-            .expect (400, { errors:
-                [ { code: 'invalid_secret',
-                  detail: 'The client secret is not valid.',
-                  status: '400' } ] });
         });
       });
 
