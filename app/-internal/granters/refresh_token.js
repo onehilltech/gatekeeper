@@ -18,7 +18,6 @@ const Granter = require ('../granter');
 
 const {
   model,
-  Policy,
   ForbiddenError,
   BadRequestError
 } = require ('@onehilltech/blueprint');

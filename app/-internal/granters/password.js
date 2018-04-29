@@ -60,12 +60,16 @@ const SCHEMA_RECAPTCHA_CLIENT = {
  * Granter for the password strategy.
  */
 module.exports = Granter.extend ({
+  /// Name of the granter.
   name: 'password',
 
+  /// The account model definition.
   Account: model ('account'),
 
+  /// The user token definition.
   UserToken: model ('user-token'),
 
+  /// The service for verifying reCAPTCHA.
   recaptcha: service (),
 
   init () {
