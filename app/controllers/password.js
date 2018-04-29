@@ -40,7 +40,8 @@ module.exports = Controller.extend ({
       schema: {
         email: {
           in: 'body',
-          notEmpty: {
+          isLength: {
+            options: {min: 1},
             errorMessage: 'The request is missing the email parameter.'
           },
           isEmail: {
@@ -72,13 +73,15 @@ module.exports = Controller.extend ({
       schema: {
         'reset-password.token': {
           in: 'body',
-          notEmpty: {
+          isLength: {
+            options: {min: 1},
             errorMessage: 'The request is missing the token parameter.'
           }
         },
         'reset-password.password': {
           in: 'body',
-          notEmpty: {
+          isLength: {
+            options: {min: 1},
             errorMessage: 'The request is missing the password parameter.'
           }
         }

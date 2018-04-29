@@ -431,6 +431,71 @@ describe.only ('app | routers | oauth2 | token', function () {
                   status: '400' } ] });
         });
       });
+
+      context.only ('recaptcha', function () {
+        it ('should grant token', function () {
+          const {recaptcha} = seed ('$default');
+          const client = recaptcha[0];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            recaptcha: 'random-response-that-always-succeeds'
+          };
+
+          return getToken (data).then (token => {
+            expect (token).to.have.keys (['token_type','access_token']);
+          });
+        });
+
+        it ('should fail because missing recaptcha response', function () {
+          const {recaptcha} = seed ('$default');
+          const client = recaptcha[0];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id
+          };
+
+          return requestToken (data)
+            .expect (400, { errors:
+                [ { code: 'validation_failed',
+                  detail: 'The request validation failed.',
+                  status: '400',
+                  meta: {
+                    validation: {
+                      recaptcha: {
+                        location: "body",
+                        msg: "This field is required.",
+                        param: "recaptcha"
+                      }
+                    }
+                  } } ] });
+        });
+
+        it ('should fail because verification failed', function () {
+          const {recaptcha} = seed ('$default');
+          const client = recaptcha[1];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            recaptcha: 'this-is-a-random-response'
+          };
+
+          return requestToken (data)
+            .expect (400, { errors:
+                [ { code: 'recaptcha_failed',
+                  detail: 'Failed to verify the reCAPTCHA response.',
+                  status: '400',
+                  meta: {
+                    'error-codes': [
+                      'invalid-input-response',
+                      'invalid-input-secret'
+                    ]
+                  } } ] });
+        });
+      });
     });
 
     describe ('refresh_token', function () {

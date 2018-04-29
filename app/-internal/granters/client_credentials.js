@@ -22,8 +22,9 @@ const {
 } = require ('lodash');
 
 const {
-  model,
   BadRequestError,
+  model,
+  service,
 } = require ('@onehilltech/blueprint');
 
 const SCHEMA_NATIVE_CLIENT = {
@@ -65,6 +66,8 @@ module.exports = Granter.extend ({
   name: 'client_credentials',
 
   ClientToken: model ('client-token'),
+
+  recaptcha: service (),
 
   /**
    * Create a token for the request.
@@ -115,6 +118,8 @@ module.exports = Granter.extend ({
     let v = new ModelVisitor ({
       promise: null,
 
+      recaptcha: this.recaptcha,
+
       visitNativeClient (client) {
         const {client_secret} = req.body;
 
@@ -124,6 +129,14 @@ module.exports = Granter.extend ({
 
       visitAndroidClient (client) {
         this.visitNativeClient (client);
+      },
+
+      visitRecaptchaClient (client) {
+        const response = req.body.recaptcha;
+        const ip = req.ip;
+        const secret = client.recaptcha_secret;
+
+        this.promise = this.recaptcha.verifyResponse (secret, response, ip);
       }
     });
 

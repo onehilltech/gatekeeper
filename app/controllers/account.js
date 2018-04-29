@@ -128,12 +128,16 @@ module.exports = ResourceController.extend ({
 
         'password.current': {
           in: 'body',
-          notEmpty: true
+          isLength: {
+            options: {min: 1}
+          }
         },
 
         'password.new': {
           in: 'body',
-          notEmpty: true
+          isLength: {
+            options: {min: 1}
+          }
         }
       },
 
@@ -165,64 +169,3 @@ module.exports = ResourceController.extend ({
     });
   }
 });
-
-/*
-
-Account.prototype.changePassword = function () {
-  return {
-    validate: {
-      'accountId': {
-        in: 'params',
-        isMongoIdOrToken: {
-          errorMessage: "Must be ObjectId or 'me'",
-          options: ['me']
-        }
-      },
-      'password.current': {
-        in: 'body',
-        notEmpty: true
-      },
-
-      'password.new': {
-        in: 'body',
-        notEmpty: true
-      }
-    },
-
-    sanitize: idSanitizer,
-
-    execute: function (req, res, callback) {
-      const currentPassword = req.body.password.current;
-      const newPassword = req.body.password.new;
-
-      async.waterfall ([
-        function (callback) {
-          Account.findById (req.params.accountId, callback);
-        },
-
-        function (account, callback) {
-          async.waterfall ([
-            function (callback) {
-              account.verifyPassword (currentPassword, callback);
-            },
-
-            function (match, callback) {
-              if (!match)
-                return callback (new HttpError (400, 'invalid_password', 'Current password is invalid'));
-
-              account.password = newPassword;
-              account.save (callback);
-            }
-          ], callback);
-        },
-
-        function (account, n, callback) {
-          res.status (200).json (n === 1);
-          return callback (null);
-        }
-      ], callback);
-    }
-  }
-};
-
-*/
