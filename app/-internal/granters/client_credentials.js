@@ -110,38 +110,5 @@ module.exports = Granter.extend ({
     client.accept (v);
 
     return v.schema;
-  },
-
-  validate (req) {
-    const {gatekeeperClient} = req;
-
-    let v = new ModelVisitor ({
-      promise: null,
-
-      recaptcha: this.recaptcha,
-
-      visitNativeClient (client) {
-        const {client_secret} = req.body;
-
-        if (client.client_secret !== client_secret)
-          this.promise = Promise.reject (new BadRequestError ('invalid_secret', 'The client secret is not valid.'));
-      },
-
-      visitAndroidClient (client) {
-        this.visitNativeClient (client);
-      },
-
-      visitRecaptchaClient (client) {
-        const response = req.body.recaptcha;
-        const ip = req.ip;
-        const secret = client.recaptcha_secret;
-
-        this.promise = this.recaptcha.verifyResponse (secret, response, ip);
-      }
-    });
-
-    gatekeeperClient.accept (v);
-
-    return v.promise;
   }
 });

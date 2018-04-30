@@ -26,6 +26,7 @@ const {
   BadRequestError,
   ForbiddenError,
   model,
+  service,
   env,
 } = require ('@onehilltech/blueprint');
 
@@ -166,9 +167,24 @@ module.exports = Controller.extend ({
             const v = new ModelVisitor ({
               promise: null,
 
+              recaptcha: service (),
+
+              visitNativeClient (client) {
+                // For a native client, we always need to authenticate the client secret.
+                const {client_secret} = req.body;
+
+                if (client.client_secret !== client_secret)
+                  this.promise = Promise.reject (new BadRequestError ('invalid_secret', 'The client secret is not valid.'));
+              },
+
               visitAndroidClient (client) {
-                // We are going to make sure the package name matches the
-                // package of the client.
+                // For an Android client, we need to authenticate the secret, and
+                // make sure the package name matches the package of the client.
+                this.visitNativeClient (client);
+
+                if (!!this.promise)
+                  return;
+
                 const packageName = req.body.package;
 
                 if (packageName !== client.package)
@@ -196,6 +212,17 @@ module.exports = Controller.extend ({
                     this.promise = Promise.reject (new BadRequestError ('unknown_origin', 'The request is missing its origin.'));
                   }
                 }
+
+                if (!!this.promise)
+                  return;
+
+                // The request can from the correct client. Now, let's verify the response
+                // with the server.
+                const response = req.body.recaptcha;
+                const ip = req.ip;
+                const secret = client.recaptcha_secret;
+
+                this.promise = this.recaptcha.verifyResponse (secret, response, ip);
               }
             });
 

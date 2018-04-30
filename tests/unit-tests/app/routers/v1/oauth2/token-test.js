@@ -163,6 +163,7 @@ describe.only ('app | routers | oauth2 | token', function () {
           const data = {
             grant_type: 'password',
             client_id: client.id,
+            client_secret: client.client_secret,
             package: 'com.onehilltech.gatekeeper',
             username: account.username,
             password: account.username,
@@ -181,6 +182,7 @@ describe.only ('app | routers | oauth2 | token', function () {
           const data = {
             grant_type: 'password',
             client_id: client.id,
+            client_secret: client.client_secret,
             username: account.username,
             password: account.username,
             package: 'a.b'
@@ -432,7 +434,7 @@ describe.only ('app | routers | oauth2 | token', function () {
         });
       });
 
-      context.only ('recaptcha', function () {
+      context ('recaptcha', function () {
         it ('should grant token', function () {
           const {recaptcha} = seed ('$default');
           const client = recaptcha[0];

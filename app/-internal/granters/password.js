@@ -94,27 +94,6 @@ module.exports = Granter.extend ({
     return v.schema;
   },
 
-  validate (req) {
-    const {gatekeeperClient} = req;
-
-    let v = new ModelVisitor ({
-      promise: null,
-      recaptcha: this.recaptcha,
-
-      visitRecaptchaClient (client) {
-        const response = req.body.recaptcha;
-        const ip = req.ip;
-        const secret = client.recaptcha_secret;
-
-        this.promise = this.recaptcha.verifyResponse (secret, response, ip);
-      }
-    });
-
-    gatekeeperClient.accept (v);
-
-    return v.promise;
-  },
-
   /**
    * Create the UserToken for the request.
    *
