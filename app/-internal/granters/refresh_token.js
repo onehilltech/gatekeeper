@@ -68,11 +68,19 @@ module.exports = Granter.extend ({
         if (!accessToken)
           return Promise.reject (new ForbiddenError ('invalid_token', 'The refresh token does not exist, or does not belong to the client.'));
 
+        if (!accessToken.enabled)
+          return Promise.reject (new ForbiddenError ('token_disabled', 'The refresh token is disabled.'));
+
         if (!accessToken.client.enabled)
           return Promise.reject (new ForbiddenError ('client_disabled', 'The client is disabled.'));
 
-        if (!accessToken.account.enabled)
-          return Promise.reject (new ForbiddenError ('account_disabled', 'The account is disabled.'));
+        if (accessToken.account) {
+          // The access token is for a user account. There are more checks that
+          // we need to execute, such as checking if the account is enabled.
+
+          if (!accessToken.account.enabled)
+            return Promise.reject (new ForbiddenError ('account_disabled', 'The account is disabled.'));
+        }
 
         return accessToken.remove ().then (accessToken => {
           const doc = {

@@ -517,7 +517,7 @@ describe.only ('app | routers | oauth2 | token', function () {
       });
     });
 
-    describe.only ('refresh_token', function () {
+    describe ('refresh_token', function () {
       // The behavior related to the refresh token is the same for all clients. We
       // can therefore execute the same unit tests for failures each client type.
 
@@ -574,6 +574,25 @@ describe.only ('app | routers | oauth2 | token', function () {
           .expect (403, { errors:
               [ { code: 'client_disabled',
                 detail: 'The client is disabled.',
+                status: '403' } ] });
+      });
+
+      it ('should fail because refresh token is disabled', function () {
+        const {native, user_tokens} = seed ('$default');
+        const client = native[1];
+        const {refresh_token} = user_tokens[3].serializeSync ();
+
+        const data = {
+          grant_type: 'refresh_token',
+          client_id: client.id,
+          client_secret: client.client_secret,
+          refresh_token
+        };
+
+        return requestToken (data)
+          .expect (403, { errors:
+              [ { code: 'token_disabled',
+                detail: 'The refresh token is disabled.',
                 status: '403' } ] });
       });
 
