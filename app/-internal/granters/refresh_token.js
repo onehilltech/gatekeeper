@@ -15,51 +15,11 @@
  */
 
 const Granter = require ('../granter');
-const ModelVisitor = require ('../../models/-visitor');
-
-const { merge } = require ('lodash');
+const { model, ForbiddenError, BadRequestError } = require ('@onehilltech/blueprint');
 
 const {
-  model,
-  ForbiddenError,
-  BadRequestError
-} = require ('@onehilltech/blueprint');
-
-const {
-  Types: {
-    ObjectId
-  }
+  Types: { ObjectId }
 } = require ('@onehilltech/blueprint-mongodb');
-
-const SCHEMA_NATIVE_CLIENT = {
-  client_secret: {
-    in: 'body',
-    isLength: {
-      options: { min: 1 },
-      errorMessage: 'This field is required.'
-    }
-  }
-};
-
-const SCHEMA_ANDROID_CLIENT = merge ({
-  package: {
-    in: 'body',
-    isLength: {
-      options: { min: 1 },
-      errorMessage: 'This field is required.'
-    }
-  }
-}, SCHEMA_NATIVE_CLIENT);
-
-const SCHEMA_RECAPTCHA_CLIENT = {
-  recaptcha: {
-    in: 'body',
-    isLength: {
-      options: {min: 1},
-      errorMessage: 'This field is required.'
-    }
-  }
-};
 
 /**
  * @class RefreshToken
@@ -70,28 +30,6 @@ module.exports = Granter.extend ({
   name: 'refresh_token',
 
   UserToken: model ('user-token'),
-
-  schemaFor (client) {
-    let v = new ModelVisitor ({
-      schema: null,
-
-      visitNativeClient () {
-        this.schema = SCHEMA_NATIVE_CLIENT;
-      },
-
-      visitAndroidClient () {
-        this.schema = SCHEMA_ANDROID_CLIENT;
-      },
-
-      visitRecaptchaClient () {
-        this.schema = SCHEMA_RECAPTCHA_CLIENT;
-      }
-    });
-
-    client.accept (v);
-
-    return v.schema;
-  },
 
   createToken (req) {
     const refreshToken = req.body.refresh_token;

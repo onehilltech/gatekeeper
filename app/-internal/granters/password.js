@@ -14,45 +14,13 @@
  * limitations under the License.
  */
 
-const Granter = require ('../granter');
-
+const { model, service, BadRequestError } = require ('@onehilltech/blueprint');
+const { union } = require ('lodash');
 const {
-  model,
-  service,
-  BadRequestError
-} = require ('@onehilltech/blueprint');
-
-const {
-  union
-} = require ('lodash');
-
-const {
-  Types: {
-    ObjectId
-  }
+  Types: { ObjectId }
 } = require ('@onehilltech/blueprint-mongodb');
 
-const ModelVisitor = require ('../../models/-visitor');
-
-const SCHEMA_ANDROID_CLIENT = {
-  package: {
-    in: 'body',
-    isLength: {
-      options: { min: 1 },
-      errorMessage: 'This field is required.'
-    }
-  }
-};
-
-const SCHEMA_RECAPTCHA_CLIENT = {
-  recaptcha: {
-    in: 'body',
-    isLength: {
-      options: {min: 1},
-      errorMessage: 'This field is required.'
-    }
-  }
-};
+const Granter = require ('../granter');
 
 /**
  * @class Password
@@ -74,24 +42,6 @@ module.exports = Granter.extend ({
 
   init () {
     this._super.call (this, ...arguments);
-  },
-
-  schemaFor (client) {
-    let v = new ModelVisitor ({
-      schema: null,
-
-      visitAndroidClient () {
-        this.schema = SCHEMA_ANDROID_CLIENT;
-      },
-
-      visitRecaptchaClient () {
-        this.schema = SCHEMA_RECAPTCHA_CLIENT;
-      }
-    });
-
-    client.accept (v);
-
-    return v.schema;
   },
 
   /**

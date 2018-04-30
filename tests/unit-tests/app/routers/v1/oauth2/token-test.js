@@ -275,7 +275,7 @@ describe.only ('app | routers | oauth2 | token', function () {
 
     describe ('client_credentials', function () {
       context ('native', function () {
-        it ('should get token for client credentials', function () {
+        it ('should grant token', function () {
           const {native} = seed ('$default');
           const client = native[0];
 
@@ -359,6 +359,23 @@ describe.only ('app | routers | oauth2 | token', function () {
       });
 
       context ('android', function () {
+        it ('should grant token', function () {
+          const {android} = seed ('$default');
+          const client = android[0];
+
+          const data = {
+            grant_type: 'client_credentials',
+            client_id: client.id,
+            client_secret: client.client_secret,
+            package: client.package
+          };
+
+          return getToken (data).then (token => {
+            expect (token).to.have.all.keys (['token_type', 'access_token']);
+            expect (token).to.have.property ('token_type', 'Bearer');
+          });
+        });
+
         it ('should fail because of missing fields', function () {
           const {android} = seed ('$default');
           const client = android[0];
@@ -502,7 +519,7 @@ describe.only ('app | routers | oauth2 | token', function () {
 
     describe ('refresh_token', function () {
       context ('native', function () {
-        it ('should refresh access and refresh token', function () {
+        it ('should refresh tokens', function () {
           const {native, accounts} = seed ('$default');
           const account = accounts[1];
           const client = native[0];
@@ -589,7 +606,7 @@ describe.only ('app | routers | oauth2 | token', function () {
       });
 
       context ('android', function () {
-        it ('should refresh access and refresh token', function () {
+        it ('should refresh tokens', function () {
           const {android, accounts} = seed ('$default');
           const account = accounts[1];
           const client = android[0];

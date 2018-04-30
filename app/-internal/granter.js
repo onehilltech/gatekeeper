@@ -15,10 +15,39 @@
  */
 
 const assert = require ('assert');
+const { BO } = require ('@onehilltech/blueprint');
+const ModelVisitor = require ('../models/-visitor');
+const { merge } = require ('lodash');
 
-const {
-  BO
-} = require ('@onehilltech/blueprint');
+const SCHEMA_NATIVE_CLIENT = {
+  client_secret: {
+    in: 'body',
+    isLength: {
+      options: { min: 1 },
+      errorMessage: 'This field is required.'
+    }
+  }
+};
+
+const SCHEMA_ANDROID_CLIENT = merge ({
+  package: {
+    in: 'body',
+    isLength: {
+      options: { min: 1 },
+      errorMessage: 'This field is required.'
+    }
+  }
+}, SCHEMA_NATIVE_CLIENT);
+
+const SCHEMA_RECAPTCHA_CLIENT = {
+  recaptcha: {
+    in: 'body',
+    isLength: {
+      options: {min: 1},
+      errorMessage: 'This field is required.'
+    }
+  }
+};
 
 /**
  * @class Granter
@@ -49,7 +78,25 @@ module.exports = BO.extend ({
    * @returns {null}
    */
   schemaFor (client) {
-    return null;
+    let v = new ModelVisitor ({
+      schema: null,
+
+      visitNativeClient () {
+        this.schema = SCHEMA_NATIVE_CLIENT;
+      },
+
+      visitAndroidClient () {
+        this.schema = SCHEMA_ANDROID_CLIENT;
+      },
+
+      visitRecaptchaClient () {
+        this.schema = SCHEMA_RECAPTCHA_CLIENT;
+      }
+    });
+
+    client.accept (v);
+
+    return v.schema;
   },
 
   validate (req) {
