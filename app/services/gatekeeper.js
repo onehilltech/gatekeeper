@@ -19,6 +19,9 @@ const { TokenGenerator } = require ('../../lib/token-generator');
 
 /**
  * @class GatekeeperService
+ *
+ * The service allows clients to perform system-level operations related to
+ * authentication and authorization.
  */
 module.exports = Service.extend ({
   _tokenGenerator: null,
