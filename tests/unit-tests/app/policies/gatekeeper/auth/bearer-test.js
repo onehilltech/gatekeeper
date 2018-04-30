@@ -133,7 +133,7 @@ describe ('app | policies | gatekeeper | auth | bearer', function () {
   it ('should fail because account is disabled', function () {
     return request ()
       .get ('/v1/accounts/me')
-      .withUserToken (4)
+      .withUserToken (5)
       .expect (403, { errors:
           [ { code: 'account_disabled',
             detail: 'The account is disabled.',
