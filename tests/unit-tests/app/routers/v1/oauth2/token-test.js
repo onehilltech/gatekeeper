@@ -587,6 +587,102 @@ describe.only ('app | routers | oauth2 | token', function () {
                   status: '400' } ] });
         });
       });
+
+      context ('android', function () {
+        it ('should refresh access and refresh token', function () {
+          const {android, accounts} = seed ('$default');
+          const account = accounts[1];
+          const client = android[0];
+
+          const data = {
+            grant_type: 'password',
+            username: account.username,
+            password: account.username,
+            client_id: client.id,
+            client_secret: client.client_secret,
+            package: client.package,
+          };
+
+          return getToken (data).then (token => {
+            const data = {
+              grant_type: 'refresh_token',
+              client_id: client.id,
+              client_secret: client.client_secret,
+              refresh_token: token.refresh_token,
+              package: client.package,
+            };
+
+            return getToken (data)
+              .then (refreshToken => {
+                expect (refreshToken).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
+                expect (refreshToken).to.have.property ('token_type', 'Bearer');
+
+                expect (refreshToken.access_token).to.not.equal (token.access_token);
+                expect (refreshToken.refresh_token).to.not.equal (token.refresh_token);
+              });
+          });
+        });
+
+        it ('should fail because of missing secret', function () {
+          const {android, user_tokens} = seed ('$default');
+          const accessToken = user_tokens[1].serializeSync ();
+          const client = android[0];
+
+          const data = {
+            grant_type: 'refresh_token',
+            client_id: client.id,
+            refresh_token: accessToken.refresh_token
+          };
+
+          return request ()
+            .post (TOKEN_URL)
+            .send (data)
+            .withUserToken (1)
+            .expect (400, {
+              errors: [{
+                status: '400',
+                code: "validation_failed",
+                detail: "The request validation failed.",
+                meta: {
+                  validation: {
+                    client_secret: {
+                      location: "body",
+                      msg: "This field is required.",
+                      param: "client_secret"
+                    },
+
+                    package: {
+                      location: "body",
+                      msg: "This field is required.",
+                      param: "package"
+                    }
+                  }
+                }
+              }]
+            });
+        });
+
+        it ('should fail because of invalid package', function () {
+          const {android, user_tokens} = seed ('$default');
+          const accessToken = user_tokens[1].serializeSync ();
+          const client = android[0];
+
+          const data = {
+            grant_type: 'refresh_token',
+            client_id: client.id,
+            client_secret: client.client_secret,
+            package: 'bad-package',
+            refresh_token: accessToken.refresh_token
+          };
+
+          return requestToken (data)
+            .withUserToken (1)
+            .expect (400, { errors:
+                [ { code: 'invalid_package',
+                  detail: 'The package does not match the client.',
+                  status: '400' } ] });
+        });
+      });
     });
   });
 
