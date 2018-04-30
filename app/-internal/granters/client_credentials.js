@@ -17,12 +17,9 @@
 const Granter = require ('../granter');
 const ModelVisitor = require ('../../models/-visitor');
 
-const {
-  merge
-} = require ('lodash');
+const { merge } = require ('lodash');
 
 const {
-  BadRequestError,
   model,
   service,
 } = require ('@onehilltech/blueprint');
