@@ -92,6 +92,28 @@ describe.only ('app | routers | oauth2 | token', function () {
     });
 
     describe ('password', function () {
+      it ('should fail because account is disabled', function () {
+        const {native, accounts} = seed ('$default');
+        const account = accounts[4];
+        const client = native[0];
+
+        const data = {
+          grant_type: 'password',
+          username: account.username,
+          password: account.password,
+          client_id: client.id,
+          client_secret: client.client_secret
+        };
+
+        return request ()
+          .post (TOKEN_URL)
+          .send (data)
+          .expect (400, { errors:
+              [ { code: 'account_disabled',
+                detail: 'The account is disabled.',
+                status: '400' } ] });
+      });
+
       context ('native', function () {
         it ('should grant token', function () {
           const {native,accounts} = seed ('$default');
@@ -129,28 +151,6 @@ describe.only ('app | routers | oauth2 | token', function () {
             .post (TOKEN_URL)
             .send (data)
             .expect (400, {errors: [{status: '400', code: 'invalid_password', detail: 'The password for the account is incorrect.'}]});
-        });
-
-        it ('should fail because account is disabled', function () {
-          const {native, accounts} = seed ('$default');
-          const account = accounts[4];
-          const client = native[0];
-
-          const data = {
-            grant_type: 'password',
-            username: account.username,
-            password: account.password,
-            client_id: client.id,
-            client_secret: client.client_secret
-          };
-
-          return request ()
-            .post (TOKEN_URL)
-            .send (data)
-            .expect (400, { errors:
-                [ { code: 'account_disabled',
-                  detail: 'The account is disabled.',
-                  status: '400' } ] });
         });
       });
 

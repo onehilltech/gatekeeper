@@ -63,7 +63,6 @@ module.exports = {
     }
   ],
 
-
   accounts: [
     {
       email: 'hilljh82@gmail.com',
@@ -100,11 +99,11 @@ module.exports = {
   ],
 
   user_tokens: [
-    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), scope: ['gatekeeper.account.*'] },
-    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), scope: ['gatekeeper.account.get_all'] },
-    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), scope: ['dummy'] },
-    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), enabled: false },
-    { client: dab.ref ('native.0'), account: dab.ref ('accounts.4')}
+    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), scope: ['gatekeeper.account.*'], refresh_token: dab.id () },
+    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), scope: ['gatekeeper.account.get_all'], refresh_token: dab.id () },
+    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), scope: ['dummy'], refresh_token: dab.id () },
+    { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), enabled: false, refresh_token: dab.id () },
+    { client: dab.ref ('native.0'), account: dab.ref ('accounts.4'), refresh_token: dab.id ()}
   ],
 
   client_tokens: [
