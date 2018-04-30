@@ -160,75 +160,7 @@ module.exports = Controller.extend ({
             if (!errors.isEmpty ())
               return;
 
-            // The last part of the validation is performing any dynamic validation
-            // based on the client. This validation is independent of the grant type
-            // for the request. Afterwards, we are going to allow the granter to perform
-            // any dynamic, context-specific validation.
-            const v = new ModelVisitor ({
-              promise: null,
-
-              recaptcha: service (),
-
-              visitNativeClient (client) {
-                // For a native client, we always need to authenticate the client secret.
-                const {client_secret} = req.body;
-
-                if (client.client_secret !== client_secret)
-                  this.promise = Promise.reject (new BadRequestError ('invalid_secret', 'The client secret is not valid.'));
-              },
-
-              visitAndroidClient (client) {
-                // For an Android client, we need to authenticate the secret, and
-                // make sure the package name matches the package of the client.
-                this.visitNativeClient (client);
-
-                if (!!this.promise)
-                  return;
-
-                const packageName = req.body.package;
-
-                if (packageName !== client.package)
-                  this.promise = Promise.reject (new BadRequestError ('invalid_package', 'The package does not match the client.'));
-              },
-
-              visitRecaptchaClient (client) {
-                // For all reCAPTCHA clients requesting a token, the origin of the request
-                // must match the origin of the client on record. This only applies when we
-                // are not in the test environment.
-
-                if (env !== 'test') {
-                  let origin = req.get ('origin');
-
-                  if (origin) {
-                    // The origin in the request is a string. The origin in the client model
-                    // can be a pattern. This will allow a single client model to handle requests
-                    // from different clients on the same domain.
-                    const isMatch = mm.isMatch (origin, client.origin);
-
-                    if (!isMatch)
-                      this.promise = Promise.reject (new BadRequestError ('invalid_origin', 'The origin of the request does not match the client.'));
-                  }
-                  else {
-                    this.promise = Promise.reject (new BadRequestError ('unknown_origin', 'The request is missing its origin.'));
-                  }
-                }
-
-                if (!!this.promise)
-                  return;
-
-                // The request can from the correct client. Now, let's verify the response
-                // with the server.
-                const response = req.body.recaptcha;
-                const ip = req.ip;
-                const secret = client.recaptcha_secret;
-
-                this.promise = this.recaptcha.verifyResponse (secret, response, ip);
-              }
-            });
-
-            client.accept (v);
-
-            return Promise.resolve (v.promise)
+            return Promise.resolve (this._validateClient (req, client))
               .then (() => granter.validate (req));
           });
         });
@@ -248,6 +180,78 @@ module.exports = Controller.extend ({
       granterFor (req) {
         const {grant_type} = req.body;
         return this.controller.granters[grant_type];
+      },
+
+      _validateClient (req, client) {
+        // The last part of the validation is performing any dynamic validation
+        // based on the client. This validation is independent of the grant type
+        // for the request. Afterwards, we are going to allow the granter to perform
+        // any dynamic, context-specific validation.
+        const v = new ModelVisitor ({
+          promise: null,
+
+          recaptcha: service (),
+
+          visitNativeClient (client) {
+            // For a native client, we always need to authenticate the client secret.
+            const {client_secret} = req.body;
+
+            if (client.client_secret !== client_secret)
+              this.promise = Promise.reject (new BadRequestError ('invalid_secret', 'The client secret is not valid.'));
+          },
+
+          visitAndroidClient (client) {
+            // For an Android client, we need to authenticate the secret, and
+            // make sure the package name matches the package of the client.
+            this.visitNativeClient (client);
+
+            if (!!this.promise)
+              return;
+
+            const packageName = req.body.package;
+
+            if (packageName !== client.package)
+              this.promise = Promise.reject (new BadRequestError ('invalid_package', 'The package does not match the client.'));
+          },
+
+          visitRecaptchaClient (client) {
+            // For all reCAPTCHA clients requesting a token, the origin of the request
+            // must match the origin of the client on record. This only applies when we
+            // are not in the test environment.
+
+            if (env !== 'test') {
+              let origin = req.get ('origin');
+
+              if (origin) {
+                // The origin in the request is a string. The origin in the client model
+                // can be a pattern. This will allow a single client model to handle requests
+                // from different clients on the same domain.
+                const isMatch = mm.isMatch (origin, client.origin);
+
+                if (!isMatch)
+                  this.promise = Promise.reject (new BadRequestError ('invalid_origin', 'The origin of the request does not match the client.'));
+              }
+              else {
+                this.promise = Promise.reject (new BadRequestError ('unknown_origin', 'The request is missing its origin.'));
+              }
+            }
+
+            if (!!this.promise)
+              return;
+
+            // The request can from the correct client. Now, let's verify the response
+            // with the server.
+            const response = req.body.recaptcha;
+            const ip = req.ip;
+            const secret = client.recaptcha_secret;
+
+            this.promise = this.recaptcha.verifyResponse (secret, response, ip);
+          }
+        });
+
+        client.accept (v);
+
+        return v.promise;
       }
     });
   },
