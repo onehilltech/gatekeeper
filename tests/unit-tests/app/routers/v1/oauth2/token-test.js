@@ -39,7 +39,7 @@ function getToken (data) {
     .then (res => res.body);
 }
 
-describe.only ('app | routers | oauth2 | token', function () {
+describe ('app | routers | oauth2 | token', function () {
   describe ('/token', function () {
     it ('should fail because of bad grant_type', function () {
       const {native} = seed ('$default');
@@ -500,7 +500,7 @@ describe.only ('app | routers | oauth2 | token', function () {
       });
     });
 
-    describe.only ('refresh_token', function () {
+    describe ('refresh_token', function () {
       context ('native', function () {
         it ('should refresh access and refresh token', function () {
           const {native, accounts} = seed ('$default');
