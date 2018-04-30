@@ -15,7 +15,7 @@
  */
 
 const { Service } = require ('@onehilltech/blueprint');
-const { TokenGenerator } = require ('../../lib/token-generator');
+const TokenGenerator = require ('../../lib/token-generator');
 
 /**
  * @class GatekeeperService
@@ -24,13 +24,24 @@ const { TokenGenerator } = require ('../../lib/token-generator');
  * authentication and authorization.
  */
 module.exports = Service.extend ({
+  /// The default token generator used by the service.
   _tokenGenerator: null,
 
   init () {
     this._super.call (this, ...arguments);
 
     const config = this.app.lookup ('config:gatekeeper');
-    this._tokenGenerator = new TokenGenerator (config.token || {});
+    this._tokenGenerator = this.makeTokenGenerator (config.token);
+  },
+
+  /**
+   * Make a new token generator.
+   *
+   * @param opts
+   * @returns {*}
+   */
+  makeTokenGenerator (opts = {}) {
+    return new TokenGenerator (opts);
   },
 
   /**
