@@ -517,55 +517,119 @@ describe.only ('app | routers | oauth2 | token', function () {
       });
     });
 
-    describe ('refresh_token', function () {
+    describe.only ('refresh_token', function () {
+      // The behavior related to the refresh token is the same for all clients. We
+      // can therefore execute the same unit tests for failures each client type.
+
+      it ('should fail because of invalid refresh token', function () {
+        const {native} = seed ('$default');
+        const client = native[0];
+
+        const data = {
+          grant_type: 'refresh_token',
+          client_id: client.id,
+          client_secret: client.client_secret,
+          refresh_token: 'bad-refresh-token'
+        };
+
+        return requestToken (data)
+          .expect (403, { errors:
+              [ { code: 'invalid_token',
+                detail: 'The refresh token is invalid.',
+                status: '403' } ] });
+      });
+
+      it ('should fail because refresh token does not match client', function () {
+        const {native, user_tokens} = seed ('$default');
+        const client = native[0];
+        const {refresh_token} = user_tokens[4].serializeSync ();
+
+        const data = {
+          grant_type: 'refresh_token',
+          client_id: client.id,
+          client_secret: client.client_secret,
+          refresh_token
+        };
+
+        return requestToken (data)
+          .expect (403, { errors:
+              [ { code: 'invalid_token',
+                detail: 'The refresh token does not exist, or does not belong to the client.',
+                status: '403' } ] });
+      });
+
+      it ('should fail because client is disabled', function () {
+        const {native, user_tokens} = seed ('$default');
+        const client = native[2];
+        const {refresh_token} = user_tokens[4].serializeSync ();
+
+        const data = {
+          grant_type: 'refresh_token',
+          client_id: client.id,
+          client_secret: client.client_secret,
+          refresh_token
+        };
+
+        return requestToken (data)
+          .expect (403, { errors:
+              [ { code: 'client_disabled',
+                detail: 'The client is disabled.',
+                status: '403' } ] });
+      });
+
+      it ('should fail because account is disabled', function () {
+        const {native, user_tokens} = seed ('$default');
+        const client = native[0];
+        const {refresh_token} = user_tokens[5].serializeSync ();
+
+        const data = {
+          grant_type: 'refresh_token',
+          client_id: client.id,
+          client_secret: client.client_secret,
+          refresh_token
+        };
+
+        return requestToken (data)
+          .expect (403, { errors:
+              [ { code: 'account_disabled',
+                detail: 'The account is disabled.',
+                status: '403' } ] });
+      });
+
       context ('native', function () {
         it ('should refresh tokens', function () {
-          const {native, accounts} = seed ('$default');
-          const account = accounts[1];
+          const {user_tokens, native} = seed ('$default');
+          const user_token = user_tokens[0];
           const client = native[0];
 
+          const {access_token, refresh_token} = user_token.serializeSync ();
+
           const data = {
-            grant_type: 'password',
-            username: account.username,
-            password: account.username,
+            grant_type: 'refresh_token',
+            refresh_token,
             client_id: client.id,
             client_secret: client.client_secret
           };
 
           return getToken (data).then (token => {
-            const data = {
-              grant_type: 'refresh_token',
-              client_id: client.id,
-              client_secret: client.client_secret,
-              refresh_token: token.refresh_token
-            };
+            expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
+            expect (token).to.have.property ('token_type', 'Bearer');
 
-            return getToken (data)
-              .then (refreshToken => {
-                expect (refreshToken).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
-                expect (refreshToken).to.have.property ('token_type', 'Bearer');
-
-                expect (refreshToken.access_token).to.not.equal (token.access_token);
-                expect (refreshToken.refresh_token).to.not.equal (token.refresh_token);
-              });
+            expect (access_token).to.not.equal (token.access_token);
+            expect (refresh_token).to.not.equal (token.refresh_token);
           });
         });
 
-        it ('should fail because of missing secret', function () {
-          const {native, user_tokens} = seed ('$default');
-          const accessToken = user_tokens[1].serializeSync ();
+        it ('should fail because of missing fields', function () {
+          const {native} = seed ('$default');
           const client = native[0];
 
           const data = {
             grant_type: 'refresh_token',
-            client_id: client.id,
-            refresh_token: accessToken.refresh_token
+            client_id: client.id
           };
 
-          return request ()
-            .post (TOKEN_URL)
-            .send (data)
-            .withUserToken (1)
+          return requestToken (data)
             .expect (400, {
               errors: [{
                 status: '400',
@@ -577,6 +641,11 @@ describe.only ('app | routers | oauth2 | token', function () {
                       location: "body",
                       msg: "This field is required.",
                       param: "client_secret"
+                    },
+                    refresh_token: {
+                      location: "body",
+                      msg: "This field is required.",
+                      param: "refresh_token"
                     }
                   }
                 }
@@ -584,20 +653,19 @@ describe.only ('app | routers | oauth2 | token', function () {
             });
         });
 
-        it ('should fail because of invalid secret', function () {
+        it ('should fail because of invalid client secret', function () {
           const {native, user_tokens} = seed ('$default');
-          const accessToken = user_tokens[1].serializeSync ();
           const client = native[0];
+          const {refresh_token} = user_tokens[0].serializeSync ();
 
           const data = {
             grant_type: 'refresh_token',
             client_id: client.id,
-            client_secret: 'bad-secret',
-            refresh_token: accessToken.refresh_token
+            client_secret: 'bad-client-secret',
+            refresh_token
           };
 
           return requestToken (data)
-            .withUserToken (1)
             .expect (400, { errors:
                 [ { code: 'invalid_secret',
                   detail: 'The client secret is not valid.',
@@ -640,21 +708,16 @@ describe.only ('app | routers | oauth2 | token', function () {
           });
         });
 
-        it ('should fail because of missing secret', function () {
-          const {android, user_tokens} = seed ('$default');
-          const accessToken = user_tokens[1].serializeSync ();
+        it ('should fail because of missing fields', function () {
+          const {android} = seed ('$default');
           const client = android[0];
 
           const data = {
             grant_type: 'refresh_token',
-            client_id: client.id,
-            refresh_token: accessToken.refresh_token
+            client_id: client.id
           };
 
-          return request ()
-            .post (TOKEN_URL)
-            .send (data)
-            .withUserToken (1)
+          return requestToken (data)
             .expect (400, {
               errors: [{
                 status: '400',
@@ -667,16 +730,40 @@ describe.only ('app | routers | oauth2 | token', function () {
                       msg: "This field is required.",
                       param: "client_secret"
                     },
-
                     package: {
                       location: "body",
                       msg: "This field is required.",
                       param: "package"
+                    },
+                    refresh_token: {
+                      location: "body",
+                      msg: "This field is required.",
+                      param: "refresh_token"
                     }
                   }
                 }
               }]
             });
+        });
+
+        it ('should fail because of invalid client secret', function () {
+          const {android, user_tokens} = seed ('$default');
+          const client = android[0];
+          const {refresh_token} = user_tokens[0].serializeSync ();
+
+          const data = {
+            grant_type: 'refresh_token',
+            client_id: client.id,
+            client_secret: 'bad-client-secret',
+            refresh_token,
+            package: client.package
+          };
+
+          return requestToken (data)
+            .expect (400, { errors:
+                [ { code: 'invalid_secret',
+                  detail: 'The client secret is not valid.',
+                  status: '400' } ] });
         });
 
         it ('should fail because of invalid package', function () {

@@ -21,6 +21,8 @@ const {
   Types: { ObjectId }
 } = require ('@onehilltech/blueprint-mongodb');
 
+const { merge } = require ('lodash');
+
 /**
  * @class RefreshToken
  *
@@ -30,6 +32,19 @@ module.exports = Granter.extend ({
   name: 'refresh_token',
 
   UserToken: model ('user-token'),
+
+  schemaFor (client) {
+    return merge ({
+      refresh_token: {
+        in: 'body',
+        isLength: {
+          options: {min: 1},
+          errorMessage: 'This field is required.'
+        }
+      }
+
+    }, this._super.call (this, client));
+  },
 
   createToken (req) {
     const refreshToken = req.body.refresh_token;
@@ -42,19 +57,16 @@ module.exports = Granter.extend ({
     return this.tokenGenerator.verifyToken (refreshToken)
       .then (payload => {
         const {jti} = payload;
+        const refresh_token = new ObjectId (jti);
+        const client = gatekeeperClient._id;
 
-        const filter = {
-          refresh_token: new ObjectId (jti),
-          client: gatekeeperClient._id
-        };
-
-        return this.UserToken.findOne (filter).populate ('client account').exec ();
+        return this.UserToken.findOne ({refresh_token, client}).populate ('client account').exec ();
       })
       .then (accessToken => {
         // Make sure the access token exists, and both the client and account for the
         // access token are not disabled.
         if (!accessToken)
-          return Promise.reject (new BadRequestError ('invalid_token', 'The refresh token does not exist.'));
+          return Promise.reject (new ForbiddenError ('invalid_token', 'The refresh token does not exist, or does not belong to the client.'));
 
         if (!accessToken.client.enabled)
           return Promise.reject (new ForbiddenError ('client_disabled', 'The client is disabled.'));
@@ -81,7 +93,7 @@ module.exports = Granter.extend ({
           err = new ForbiddenError ('token_expired', 'The refresh token has expired.');
 
         if (err.name === 'JsonWebTokenError')
-          err = new ForbiddenError ('token_expired', 'The refresh token is invalid.');
+          err = new ForbiddenError ('invalid_token', 'The refresh token is invalid.');
 
         return Promise.reject (err);
       });

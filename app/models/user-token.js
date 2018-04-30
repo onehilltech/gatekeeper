@@ -97,7 +97,7 @@ schema.methods.serializeSync = function (generator = defaultGenerator) {
         option.audience = this.origin;
 
       return generator.generateTokenSync ({}, options);
-    })
+    }) ()
   };
 };
 
