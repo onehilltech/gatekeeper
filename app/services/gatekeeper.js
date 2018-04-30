@@ -32,6 +32,10 @@ module.exports = Service.extend ({
 
     const config = this.app.lookup ('config:gatekeeper');
     this._tokenGenerator = this.makeTokenGenerator (config.token);
+
+    Object.defineProperty (this, 'tokenGenerator', {
+      get () { return this._tokenGenerator; }
+    });
   },
 
   /**
