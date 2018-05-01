@@ -25,15 +25,15 @@ const DEFAULT_BASE_OPTIONS = {
 
 const BUILTIN_TOKEN_GENERATORS = {
   'gatekeeper:access_token': {
-
+    expiresIn: '12 hours'
   },
 
   'gatekeeper:account_verification': {
-
+    expiresIn: '14 days',
   },
 
   'gatekeeper:password_reset': {
-    expiresIn: '10m'
+    expiresIn: '10 minutes'
   }
 };
 
@@ -61,6 +61,10 @@ module.exports = Service.extend ({
 
     Object.defineProperty (this, 'tokenGenerator', {
       get () { return this._tokenGenerator; }
+    });
+
+    Object.defineProperty (this, 'tokenGenerators', {
+      get () { return this._tokenGenerators; }
     });
   },
 
