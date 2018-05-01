@@ -18,21 +18,24 @@ const {
   Action,
   Controller,
   model,
-  BadRequestError
+  service,
+  BadRequestError,
 } = require ('@onehilltech/blueprint');
 
-const PasswordResetTokenGenerator = require ('../-internal/token-generators/password-reset');
-
+/**
+ * @class PasswordController
+ *
+ * Controller that has actions related to managing an accounts password.
+ */
 module.exports = Controller.extend ({
   tokenGenerator: null,
+
+  gatekeeper: service (),
 
   init () {
     this._super.call (this, ...arguments);
 
-    const config = this.app.lookup ('config:gatekeeper');
-    const tokenConfig = config.token;
-
-    this.tokenGenerator = new PasswordResetTokenGenerator (tokenConfig);
+    this.tokenGenerator = this.gatekeeper.getTokenGenerator ('gatekeeper:password_reset');
   },
 
   forgotPassword () {

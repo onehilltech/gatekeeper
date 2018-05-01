@@ -14,36 +14,29 @@
  * limitations under the License.
  */
 
-const {
-  props
-} = require ('bluebird');
-
-const assert = require ('assert');
+const { props } = require ('bluebird');
 const blueprint = require ('@onehilltech/blueprint');
-const mongodb = require ('@onehilltech/blueprint-mongodb');
-const Schema  = mongodb.Schema;
+const {Schema}  = require ('@onehilltech/blueprint-mongodb');
 const AccessToken = require ('./access-token');
-const AccessTokenGenerator = require ('../-internal/token-generators/access-token');
 
 const {
-  get
-} = require ('lodash');
+  schema: {
+    options: {
+      discriminatorKey
+    }
+  }
+} = AccessToken;
 
-const discriminatorKey = AccessToken.schema.options.discriminatorKey;
+const options = require ('./-common-options') ({discriminatorKey});
 
-let options = require ('./-common-options') ({discriminatorKey});
+const gatekeeper = blueprint.lookup ('service:gatekeeper');
+const accessTokenGenerator = gatekeeper.getTokenGenerator ('gatekeeper:access_token');
 
-const config = blueprint.lookup ('config:gatekeeper');
-const tokenOptions = get (config, 'token');
+// Define the schema for the client token.
 
-assert (!!tokenOptions, 'The gatekeeper configuration file (app/configs/gatekeeper.js) must define {token} property');
-
-const defaultGenerator = new AccessTokenGenerator (tokenOptions);
-
-//const tokenGenerator = new AccessTokenGenerator ();
 const schema = new Schema ({ }, options);
 
-schema.methods.serialize = function (tokenGenerator = defaultGenerator) {
+schema.methods.serialize = function () {
   return props ({
     access_token: (() => {
       const payload = { scope: this.scope };
@@ -52,12 +45,12 @@ schema.methods.serialize = function (tokenGenerator = defaultGenerator) {
       if (this.origin)
         options.audience = this.origin;
 
-      return tokenGenerator.generateTokenSync (payload, options);
+      return accessTokenGenerator.generateTokenSync (payload, options);
     })()
   });
 };
 
-schema.methods.serializeSync = function (tokenGenerator = defaultGenerator) {
+schema.methods.serializeSync = function () {
   return {
     access_token: (() => {
       const payload = { scope: this.scope };
@@ -66,7 +59,7 @@ schema.methods.serializeSync = function (tokenGenerator = defaultGenerator) {
       if (this.origin)
         options.audience = this.origin;
 
-      return tokenGenerator.generateTokenSync (payload, options);
+      return accessTokenGenerator.generateTokenSync (payload, options);
 
     }) ()
   };

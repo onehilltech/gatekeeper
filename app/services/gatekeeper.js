@@ -15,7 +15,27 @@
  */
 
 const { Service } = require ('@onehilltech/blueprint');
+const { get, forOwn, merge } = require ('lodash');
+
 const TokenGenerator = require ('../../lib/token-generator');
+
+const DEFAULT_BASE_OPTIONS = {
+  issuer: 'gatekeeper',
+};
+
+const BUILTIN_TOKEN_GENERATORS = {
+  'gatekeeper:access_token': {
+
+  },
+
+  'gatekeeper:account_verification': {
+
+  },
+
+  'gatekeeper:password_reset': {
+
+  }
+};
 
 /**
  * @class GatekeeperService
@@ -27,11 +47,17 @@ module.exports = Service.extend ({
   /// The default token generator used by the service.
   _tokenGenerator: null,
 
+  /// The base options used by all token generators.
+  _baseOptions: null,
+
+  /// Collection of named token generators.
+  _tokenGenerators: {},
+
   init () {
     this._super.call (this, ...arguments);
 
     const config = this.app.lookup ('config:gatekeeper');
-    this._tokenGenerator = this.makeTokenGenerator (config.token);
+    this._parseConfiguration (config);
 
     Object.defineProperty (this, 'tokenGenerator', {
       get () { return this._tokenGenerator; }
@@ -39,13 +65,66 @@ module.exports = Service.extend ({
   },
 
   /**
+   * Parse the configuration, and initialize the service.
+   *
+   * @param config
+   * @private
+   */
+  _parseConfiguration (config = {}) {
+    // Load the base options from the configuration file. We will use the base
+    // options to create the default token generator for the service.
+
+    this._baseOptions = merge ({}, DEFAULT_BASE_OPTIONS, get (config.tokens, '$', {}));
+    this._tokenGenerator = new TokenGenerator ({options: this._baseOptions});
+
+    // Create the named token generators. This includes the builtin token generators
+    // and the ones defined in the configuration file. We allow the user to override
+    // some of the default configuration values for the built-in token generators.
+    let tokenConfigs = merge ({}, BUILTIN_TOKEN_GENERATORS, config.tokens || {});
+
+    forOwn (tokenConfigs, (config, name) => {
+      if (name === '$')
+        return;
+
+      // The name of the configuration is the subject. This is the one
+      // parameter we do not allow the user to override.
+      let tokenConfig = merge ({}, config, {subject: name});
+
+      this.makeNamedTokenGenerator (name, tokenConfig);
+    }, this._tokenGenerators);
+  },
+
+  /**
+   * Make a token generator, and cache it.
+   *
+   * @param name
+   * @param options
+   * @return {*}
+   */
+  makeNamedTokenGenerator (name, options = {}) {
+    let tokenGenerator = this.makeTokenGenerator (options);
+    this._tokenGenerators[name] = tokenGenerator;
+
+    return tokenGenerator;
+  },
+
+  /**
+   * Get a named token generator.
+   *
+   * @param name          Name of the token generator.
+   */
+  getTokenGenerator (name) {
+    return get (this._tokenGenerators, name);
+  },
+
+  /**
    * Make a new token generator.
    *
-   * @param opts
+   * @param options
    * @returns {*}
    */
-  makeTokenGenerator (opts = {}) {
-    return new TokenGenerator (opts);
+  makeTokenGenerator (options = {}) {
+    return this._tokenGenerator.extend ({options});
   },
 
   /**

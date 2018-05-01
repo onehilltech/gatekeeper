@@ -15,10 +15,7 @@
  */
 
 const blueprint = require ('@onehilltech/blueprint');
-
-const {
-  checkSchema
-} = require('express-validator/check');
+const { checkSchema } = require('express-validator/check');
 
 const {
   Controller,
@@ -31,23 +28,13 @@ const {
 } = require ('@onehilltech/blueprint');
 
 const Granters = require ('../../-internal/granters');
-const AccessTokenGenerator = require ('../../-internal/token-generators/access-token');
 const ModelVisitor = require ('../../models/-visitor');
 
 const mm = require ('micromatch');
 
-const {
-  fromCallback
-} = require ('bluebird');
-
-const {
-  get,
-  transform
-} = require ('lodash');
-
-const {
-  validationResult
-} = require ('express-validator/check');
+const { fromCallback } = require ('bluebird');
+const { get, transform } = require ('lodash');
+const { validationResult } = require ('express-validator/check');
 
 /**
  * @class ValidateClientVisitor
@@ -129,26 +116,24 @@ const ValidateClientVisitor = ModelVisitor.extend ({
  * @constructor
  */
 module.exports = Controller.extend ({
+  /// Listing of the supported grant types.
   grantTypes: blueprint.computed ({
-    get () {
-      return Object.keys (this.granters);
-    }
+    get () { return Object.keys (this.granters); }
   }),
 
   /// Collection of granters supported by the controller.
   granters: null,
 
-  tokenGenerator: null,
+  /// The gatekeeper service, which holds the different token generators.
+  gatekeeper: service (),
 
   init () {
     this._super.call (this, ...arguments);
 
-    const config = this.app.lookup ('config:gatekeeper');
-    const tokenOptions = get (config, 'token', {});
-    this.tokenGenerator = new AccessTokenGenerator (tokenOptions);
+    let tokenGenerator = this.gatekeeper.getTokenGenerator ('gatekeeper:access_token');
 
     this.granters = transform (Granters, (results, Granter) => {
-      let granter = new Granter ({tokenGenerator: this.tokenGenerator});
+      let granter = new Granter ({tokenGenerator});
       results[granter.name] = granter;
     }, {});
   },
@@ -241,7 +226,7 @@ module.exports = Controller.extend ({
         const granter = this.granterFor (req);
 
         return granter.createToken (req)
-          .then (accessToken => accessToken.serialize (this.tokenGenerator))
+          .then (accessToken => accessToken.serialize ())
           .then (accessToken => {
             const ret = Object.assign ({token_type: 'Bearer'}, accessToken);
             res.status (200).json (ret);

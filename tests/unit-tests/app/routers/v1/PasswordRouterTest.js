@@ -16,24 +16,16 @@
 
 const {expect} = require ('chai');
 const blueprint = require ('@onehilltech/blueprint');
-
-const {
-  seed
-} = require ('@onehilltech/blueprint-mongodb');
-
-const {
-  request
-} = require ('../../../../../lib/testing');
-
+const { seed } = require ('@onehilltech/blueprint-mongodb');
+const { request } = require ('../../../../../lib/testing');
 const async = require ('async');
-const ResetPasswordTokenGenerator = require ('../../../../../app/-internal/token-generators/password-reset');
 
 describe ('app | routers | password', function () {
   let tokenGenerator;
 
   before (function () {
-    const config = blueprint.lookup ('config:gatekeeper');
-    tokenGenerator = new ResetPasswordTokenGenerator (config.token);
+    const gatekeeper = blueprint.lookup ('service:gatekeeper');
+    tokenGenerator = gatekeeper.getTokenGenerator ('gatekeeper:password_reset');
   });
 
   describe ('/v1/password/forgot', function () {

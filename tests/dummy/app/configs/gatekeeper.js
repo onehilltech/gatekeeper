@@ -40,9 +40,9 @@ module.exports = {
     },
   },
 
-  token: {
-    kind: 'jwt',
-    options: {
+  tokens: {
+    // This is the base options for all token generators.
+    $: {
       algorithm: 'HS256',
       secret: 'ssshhh',
       issuer: 'gatekeeper',

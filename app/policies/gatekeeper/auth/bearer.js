@@ -14,40 +14,38 @@
  * limitations under the License.
  */
 
-const blueprint = require ('@onehilltech/blueprint');
-
 const {
   Policy,
   ForbiddenError,
   BadRequestError,
-  model
-} = blueprint;
+  model,
+  service,
+} = require ('@onehilltech/blueprint');
 
-const assert = require ('assert');
+const { some } = require ('micromatch');
+const { flattenDeep } = require ('lodash');
 
-const {
-  some
-} = require ('micromatch');
-
-const {
-  flattenDeep
-} = require ('lodash');
-
-const AccessTokenGenerator = require ('../../../-internal/token-generators/access-token');
 const BEARER_SCHEME_REGEXP = /^Bearer$/i;
 
+/**
+ * @class BearerPolicy
+ *
+ * The policy for evaluating the OAuth 2.0 bearer strategy.
+ */
 module.exports = Policy.extend ({
+  /// The access token model.
   AccessToken: model ('access-token'),
 
+  /// The gatekeeper service with the token generators.
+  gatekeeper: service (),
+
+  /// Token generator used to verify the tokens.
   _tokenGenerator: null,
 
   init () {
     this._super.call (this, ...arguments);
 
-    let config = blueprint.lookup ('config:gatekeeper');
-    assert (!!config, 'The application is missing the gatekeeper configuration.');
-
-    this._tokenGenerator = new AccessTokenGenerator (config.token);
+    this._tokenGenerator = this.gatekeeper.getTokenGenerator ('gatekeeper:access_token');
   },
 
   /**

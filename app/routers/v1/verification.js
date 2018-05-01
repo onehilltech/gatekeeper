@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-const TokenGenerator = require ('../token-generator');
-
-/**
- * @class AccessTokenGenerator
- *
- * The default class used for generating access tokens.
- */
-module.exports = TokenGenerator.extend ({
-  options: {
-    subject: 'gatekeeper:password:reset'
+module.exports = {
+  '/verify': {
+    get: 'verification'
   }
-});
+};
