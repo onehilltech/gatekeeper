@@ -50,9 +50,16 @@ let schema = new Schema ({
   /// token for the account.
   scope: {type: [String], default: []},
 
-  /// The date the account was verified. If accounts do not need to
-  /// be verified, then this value will always be null.
-  verified_at: {type: Date}
+  verification: {
+    /// The account must be verified before usage.
+    required: {type: Boolean, default: false},
+
+    /// The date of the verification.
+    date: {type: Date},
+
+    /// The ip-address where the verification was initiated.
+    ip_address: {type: String}
+  }
 }, options);
 
 /**

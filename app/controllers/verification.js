@@ -19,7 +19,8 @@ const {
   Action,
   model,
   service,
-  env
+  env,
+  ForbiddenError
 } = require ('@onehilltech/blueprint');
 
 /**
@@ -28,10 +29,26 @@ const {
  * The controller for verifying user accounts.
  */
 module.exports = Controller.extend ({
-  gatekeeper: service (),
-
+  /// The account model.
   Account: model ('account'),
 
+  /// The gatekeeper service with the token generators.
+  gatekeeper: service (),
+
+  /// The token generator for used to verify account verification tokens.
+  _tokenGenerator: null,
+
+  init () {
+    this._super.call (this, ...arguments);
+    this._tokenGenerator = this.gatekeeper.getTokenGenerator ('gatekeeper:account_verification');
+  },
+
+  /**
+   * The one and only action of the controller that verifies an account.
+   *
+   * @return {*}
+   * @private
+   */
   __invoke () {
     return Action.extend ({
       schema: {
@@ -45,51 +62,64 @@ module.exports = Controller.extend ({
 
         redirect: {
           in: 'query',
-          optional: true,
           isURL: {
+            errorMessage: 'This field is not a URL.',
             options: [{require_tld: env === 'production'}]
           }
         }
       },
 
+      /**
+       * Execute the action.
+       *
+       * The execution of the action involves the following steps. First, we decode the
+       * provided token. If the token is valid, then we use the information in the token
+       * to locate the corresponding account.
+       *
+       * Once we have the account, we make sure it is valid and has not been verified. If
+       * this is all good, then we verify the acount
+       *
+       * @param req
+       * @param res
+       * @return {*}
+       */
       execute (req, res) {
+        const {token, redirect} = req.query;
 
+        return this.controller._tokenGenerator.verifyToken (token)
+          .then (payload => this.controller.Account.findById (payload.jti))
+          .then (account => {
+            // Let's make sure the account exist, the account is not disabled, and
+            // the account has not been verified.
+            if (!account)
+              return Promise.reject (new ForbiddenError ('unknown_account', 'The account is unknown.'));
+
+            if (!account.enabled)
+              return Promise.reject (new ForbiddenError ('account_disabled', 'The account is disabled.'));
+
+            if (!!account.verification.date)
+              return Promise.reject (new ForbiddenError ('already_verified', 'The account has already been verified.', {verification: account.verification}));
+
+            // Save the verification details.
+            account.verification.date = new Date ();
+            account.verification.ip_address = req.ip;
+
+            return account.save ();
+          })
+          .then (account => this.emit ('gatekeeper.account.verified', account))
+          .then (() => res.redirect (301, redirect))
+          .catch (err => {
+            // Translate the error, if necessary. We have to check the name because the error
+            // could be related to token verification.
+            if (err.name === 'TokenExpiredError')
+              err = new ForbiddenError ('token_expired', 'The access token has expired.');
+
+            if (err.name === 'JsonWebTokenError')
+              err = new ForbiddenError ('invalid_token', err.message);
+
+            return Promise.reject (err);
+          });
       }
     })
   }
 });
-
-/*
-Verification.prototype.__invoke = function () {
-
-  return {
-    execute: function (req, res, callback) {
-      async.waterfall ([
-        function (callback) {
-          verification.verifyToken (req.query.token, callback);
-        },
-
-        function (account, n, callback) {
-          if (req.query.redirect) {
-            let code = n === 1 ? 'success' : 'verify_failed';
-
-            res.redirect (`${req.query.redirect}?email=${encodeURIComponent (account.email)}&code=${code}`);
-          }
-          else {
-            let verified = n === 1;
-
-            let data = {
-              email: account.email,
-              message: verified ? `You have successfully verified the account for ${account.email}.` : `You failed to verify the account for ${account.email}.`
-            };
-
-            res.status (200).render ('gatekeeper-account-verification.pug', data);
-          }
-
-          return callback (null);
-        }
-      ], callback);
-    }
-  };
-};
-*/

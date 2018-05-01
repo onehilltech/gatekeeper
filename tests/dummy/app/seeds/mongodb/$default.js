@@ -95,7 +95,19 @@ module.exports = {
       password: 'account5',
       created_by: dab.ref ('native.0'),
       enabled: false
+    },
+    {
+      email: 'account6@gatekeeper.com',
+      username: 'account6',
+      password: 'account6',
+      created_by: dab.ref ('native.0'),
+      enabled: true,
+      verification: {
+        date: new Date (),
+        ip_address: '127.0.0.1'
+      }
     }
+
   ],
 
   user_tokens: [
