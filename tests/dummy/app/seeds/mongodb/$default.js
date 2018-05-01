@@ -116,7 +116,9 @@ module.exports = {
     { client: dab.ref ('native.0'), account: dab.ref ('accounts.0'), scope: ['dummy'], refresh_token: dab.id () },
     { client: dab.ref ('native.1'), account: dab.ref ('accounts.0'), enabled: false, refresh_token: dab.id () },
     { client: dab.ref ('native.2'), account: dab.ref ('accounts.0'), refresh_token: dab.id ()},
-    { client: dab.ref ('native.0'), account: dab.ref ('accounts.4'), refresh_token: dab.id ()}
+    { client: dab.ref ('native.0'), account: dab.ref ('accounts.4'), refresh_token: dab.id ()},
+    { client: dab.ref ('recaptcha.0'), account: dab.ref ('accounts.0'), refresh_token: dab.id ()},
+    { client: dab.ref ('android.0'), account: dab.ref ('accounts.0'), refresh_token: dab.id ()}
   ],
 
   client_tokens: [

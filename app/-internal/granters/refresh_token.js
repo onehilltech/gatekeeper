@@ -22,6 +22,7 @@ const {
 } = require ('@onehilltech/blueprint-mongodb');
 
 const { merge } = require ('lodash');
+const ModelVisitor = require ('../../models/-visitor');
 
 /**
  * @class RefreshToken
@@ -34,7 +35,7 @@ module.exports = Granter.extend ({
   UserToken: model ('user-token'),
 
   schemaFor (client) {
-    return merge ({
+    let schema = merge ({
       refresh_token: {
         in: 'body',
         isLength: {
@@ -44,6 +45,16 @@ module.exports = Granter.extend ({
       }
 
     }, this._super.call (this, client));
+
+    client.accept (new ModelVisitor ({
+      visitRecaptchaClient () {
+        // Due to the expected behavior of reCAPTCHA, we do not require a recaptcha
+        // response refreshing the access token.
+        delete schema.recaptcha;
+      }
+    }));
+
+    return schema;
   },
 
   createToken (req) {

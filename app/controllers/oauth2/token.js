@@ -217,7 +217,7 @@ module.exports = Controller.extend ({
               return;
 
             return Promise.resolve (this._validateClient (req, client))
-              .then (() => granter.validate (req));
+              .then (() => granter.validate (req, client));
           });
         });
       },

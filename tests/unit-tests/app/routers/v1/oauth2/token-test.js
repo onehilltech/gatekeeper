@@ -39,7 +39,7 @@ function getToken (data) {
     .then (res => res.body);
 }
 
-describe ('app | routers | oauth2 | token', function () {
+describe.only ('app | routers | oauth2 | token', function () {
   describe ('/token', function () {
     it ('should fail because of bad grant_type', function () {
       const {native} = seed ('$default');
@@ -694,36 +694,26 @@ describe ('app | routers | oauth2 | token', function () {
 
       context ('android', function () {
         it ('should refresh tokens', function () {
-          const {android, accounts} = seed ('$default');
-          const account = accounts[1];
+          const {user_tokens, android} = seed ('$default');
+          const user_token = user_tokens[7];
           const client = android[0];
 
+          const {access_token, refresh_token} = user_token.serializeSync ();
+
           const data = {
-            grant_type: 'password',
-            username: account.username,
-            password: account.username,
+            grant_type: 'refresh_token',
+            refresh_token,
             client_id: client.id,
             client_secret: client.client_secret,
-            package: client.package,
+            package: client.package
           };
 
           return getToken (data).then (token => {
-            const data = {
-              grant_type: 'refresh_token',
-              client_id: client.id,
-              client_secret: client.client_secret,
-              refresh_token: token.refresh_token,
-              package: client.package,
-            };
+            expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
+            expect (token).to.have.property ('token_type', 'Bearer');
 
-            return getToken (data)
-              .then (refreshToken => {
-                expect (refreshToken).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
-                expect (refreshToken).to.have.property ('token_type', 'Bearer');
-
-                expect (refreshToken.access_token).to.not.equal (token.access_token);
-                expect (refreshToken.refresh_token).to.not.equal (token.refresh_token);
-              });
+            expect (access_token).to.not.equal (token.access_token);
+            expect (refresh_token).to.not.equal (token.refresh_token);
           });
         });
 
@@ -804,6 +794,56 @@ describe ('app | routers | oauth2 | token', function () {
                 [ { code: 'invalid_package',
                   detail: 'The package does not match the client.',
                   status: '400' } ] });
+        });
+      });
+
+      context ('recaptcha', function () {
+        it ('should refresh tokens', function () {
+          const {user_tokens, recaptcha} = seed ('$default');
+          const user_token = user_tokens[6];
+          const client = recaptcha[0];
+
+          const {access_token, refresh_token} = user_token.serializeSync ();
+
+          const data = {
+            grant_type: 'refresh_token',
+            refresh_token,
+            client_id: client.id
+          };
+
+          return getToken (data).then (token => {
+            expect (token).to.have.all.keys (['token_type', 'access_token', 'refresh_token']);
+            expect (token).to.have.property ('token_type', 'Bearer');
+
+            expect (access_token).to.not.equal (token.access_token);
+            expect (refresh_token).to.not.equal (token.refresh_token);
+          });
+        });
+
+        it ('should fail because of missing fields', function () {
+          const {user_tokens} = seed ('$default');
+          const user_token = user_tokens[6];
+          const {refresh_token} = user_token.serializeSync ();
+
+          const data = {
+            grant_type: 'refresh_token',
+            refresh_token,
+          };
+
+          return requestToken (data)
+            .expect (400, { errors:
+                [ { code: 'validation_failed',
+                  detail: 'The request validation failed.',
+                  status: '400',
+                  meta: {
+                    validation: {
+                      client_id: {
+                        location: 'body',
+                        msg: 'The field is required.',
+                        param: 'client_id'
+                      }
+                    }
+                  } } ] });
         });
       });
     });
