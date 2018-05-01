@@ -41,7 +41,10 @@ describe ('app | models | account', function () {
           email: account.email,
           enabled: true,
           created_by: native[0].id,
-          scope: []
+          scope: [],
+          verification: {
+            required: false
+          }
         });
       });
     });

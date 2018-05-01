@@ -24,7 +24,7 @@ const {
 const { request } = require ('@onehilltech/blueprint-testing');
 const { expect } = require ('chai');
 
-describe.only ('app | routers | verification', function () {
+describe ('app | routers | verification', function () {
   function getTokenGenerator () {
     let gatekeeper = blueprint.lookup ('service:gatekeeper');
     return gatekeeper.getTokenGenerator ('gatekeeper:account_verification');

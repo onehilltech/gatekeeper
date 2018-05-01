@@ -80,7 +80,19 @@ describe ('app | routers | account', function () {
           .expect (200).then (res => {
             let _id = res.body.account._id;
 
-            expect (res.body).to.eql ({account: {_id, enabled: true, scope: [], username: data.username, email: data.email, created_by: native[0].id}})
+            expect (res.body).to.eql ({
+              account: {
+                _id,
+                enabled: true,
+                scope: [],
+                username: data.username,
+                email: data.email,
+                created_by: native[0].id,
+                verification: {
+                  required: false
+                }
+              }
+            });
           });
       });
 
@@ -92,7 +104,19 @@ describe ('app | routers | account', function () {
           .post ('/v1/accounts')
           .send ({account: Object.assign ({_id}, data)})
           .withClientToken (0)
-          .expect (200, {account: {_id: _id.toString (), enabled: true, scope: [], username: data.username, email: data.email, created_by: native[0].id}});
+          .expect (200, {
+            account: {
+              _id: _id.toString (),
+              enabled: true,
+              scope: [],
+              username: data.username,
+              email: data.email,
+              created_by: native[0].id,
+              verification: {
+                required: false
+              }
+            }
+          });
       });
 
       it ('should create a new account, and login the user', function () {
@@ -109,7 +133,10 @@ describe ('app | routers | account', function () {
           _id: autoLogin._id.toString (),
           created_by: native[0].id,
           scope: [],
-          enabled: true
+          enabled: true,
+          verification: {
+            required: false
+          }
         }, {username: autoLogin.username, email: autoLogin.email});
 
         return request ()
