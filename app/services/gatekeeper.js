@@ -33,7 +33,7 @@ const BUILTIN_TOKEN_GENERATORS = {
   },
 
   'gatekeeper:password_reset': {
-
+    expiresIn: '10m'
   }
 };
 

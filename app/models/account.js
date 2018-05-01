@@ -89,6 +89,10 @@ schema.methods.verifyPassword = function (password) {
   return bcrypt.compare (password, this.password);
 };
 
+schema.methods.verifyPasswordSync = function (password) {
+  return bcrypt.compareSync (password, this.password);
+};
+
 /**
  * Get the client id, which is an alias for created_by.
  */

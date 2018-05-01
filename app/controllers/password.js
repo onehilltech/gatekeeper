@@ -19,7 +19,7 @@ const {
   Controller,
   model,
   service,
-  BadRequestError,
+  ForbiddenError,
 } = require ('@onehilltech/blueprint');
 
 /**
@@ -32,12 +32,23 @@ module.exports = Controller.extend ({
 
   gatekeeper: service (),
 
+  Account: model ('account'),
+
   init () {
     this._super.call (this, ...arguments);
 
     this.tokenGenerator = this.gatekeeper.getTokenGenerator ('gatekeeper:password_reset');
   },
 
+  /**
+   * The user has forgot their password.
+   *
+   * First, use the provide email address to locate the account. We then use
+   * the located account to generate a special token. The token is then sent
+   * to the user so they can reset their password.
+   *
+   * @return {*}
+   */
   forgotPassword () {
     return Action.extend ({
       schema: {
@@ -45,64 +56,95 @@ module.exports = Controller.extend ({
           in: 'body',
           isLength: {
             options: {min: 1},
-            errorMessage: 'The request is missing the email parameter.'
+            errorMessage: 'This field is required.'
           },
           isEmail: {
-            errorMessage: 'The provide email address is not valid.'
+            errorMessage: 'The provided email address is not valid.'
           }
         }
       },
 
-      Account: model ('account'),
-
       execute (req, res) {
         const {email} = req.body;
 
-        return this.Account.findOne ({email}).then (account => {
-          if (!account)
-            return callback (new BadRequestError ('unknown_account', 'The account for the email address does not exist.'));
+        return this.controller.Account.findOne ({email})
+          .then (account => {
+            if (!account)
+              return Promise.reject (new ForbiddenError ('unknown_account', 'The email address does not have an account.'));
 
-          this.controller.app.emit ('gatekeeper.password.forgot', account);
-          res.status (200).json (true);
-        });
+            if (!account.enabled)
+              return Promise.reject (new ForbiddenError ('account_disabled', 'The account is disabled.'));
+
+            const payload = { jti: account.id };
+
+            return this.controller.tokenGenerator.generateToken (payload)
+              .then (token => {
+                this.emit ('gatekeeper.password.forgot', account, token);
+              });
+          })
+          .then (() => {
+            res.status (200).json (true);
+          });
       }
     });
   },
 
+  /**
+   * The user wants to reset their password. This method works in conjunction with
+   * forgotPassword(). We are expecting the query for this request to contain a
+   * valid token that was issued by forgotPassword().
+   *
+   * @return {*}
+   */
   resetPassword () {
     return Action.extend ({
-      Account: model ('account'),
-
       schema: {
         'reset-password.token': {
           in: 'body',
           isLength: {
             options: {min: 1},
-            errorMessage: 'The request is missing the token parameter.'
+            errorMessage: 'This field is required.'
           }
         },
         'reset-password.password': {
           in: 'body',
           isLength: {
             options: {min: 1},
-            errorMessage: 'The request is missing the password parameter.'
+            errorMessage: 'This field is required.'
           }
         }
       },
 
       execute (req, res) {
-        let {token,password} = req.body['reset-password'];
+        const {token, password} = req.body['reset-password'];
 
         return this.controller.tokenGenerator.verifyToken (token)
-          .then (payload => this.Account.findOne ({email: payload.email}))
+          .then (payload => this.controller.Account.findById (payload.jti))
           .then (account => {
+            if (!account)
+              return Promise.reject (new ForbiddenError ('unknown_account', 'The account does not exist.'));
+
+            if (!account.enabled)
+              return Promise.reject (new ForbiddenError ('account_disabled', 'The account is disabled.'));
+
             account.password = password;
             return account.save ();
           })
           .then (account => {
-            this.controller.app.emit ('gatekeeper.password.reset', account);
+            this.emit ('gatekeeper.password.reset', account);
 
             res.status (200).json (true);
+          })
+          .catch (err => {
+            // Translate the error, if necessary. We have to check the name because the error
+            // could be related to token verification.
+            if (err.name === 'TokenExpiredError')
+              err = new ForbiddenError ('token_expired', 'The access token has expired.');
+
+            if (err.name === 'JsonWebTokenError')
+              err = new ForbiddenError ('invalid_token', err.message);
+
+            return Promise.reject (err);
           });
       }
     });
