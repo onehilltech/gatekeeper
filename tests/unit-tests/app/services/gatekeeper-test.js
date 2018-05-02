@@ -22,42 +22,64 @@ describe.only ('app | services | gatekeeper', function () {
     return blueprint.lookup ('service:gatekeeper');
   }
 
-  it ('should initialize the gatekeeper service', function () {
-    let gatekeeper = getService ();
+  describe ('init', function () {
+    it ('should initialize the gatekeeper service', function () {
+      let gatekeeper = getService ();
 
-    expect (gatekeeper.tokenGenerator).to.have.deep.property ('options', {
-      algorithm: 'HS256',
-      expiresIn: '1h',
-      issuer: 'gatekeeper',
-      secret: 'ssshhh',
+      expect (gatekeeper.tokenGenerator).to.have.deep.property ('options', {
+        algorithm: 'HS256',
+        expiresIn: '1h',
+        issuer: 'gatekeeper',
+        secret: 'ssshhh',
+      });
+
+      const generators = gatekeeper.tokenGenerators;
+
+      expect (generators).to.have.keys (['gatekeeper:access_token', 'gatekeeper:account_verification', 'gatekeeper:password_reset']);
+
+      expect (generators).to.have.property ('gatekeeper:access_token').to.have.deep.property ('options', {
+        algorithm: 'HS256',
+        expiresIn: '12 hours',
+        subject: 'gatekeeper:access_token',
+        issuer: 'gatekeeper',
+        secret: 'ssshhh',
+      });
+
+      expect (generators).to.have.property ('gatekeeper:account_verification').to.have.deep.property ('options', {
+        algorithm: 'HS256',
+        expiresIn: '14 days',
+        subject: 'gatekeeper:account_verification',
+        issuer: 'gatekeeper',
+        secret: 'ssshhh'
+      });
+
+      expect (generators).to.have.property ('gatekeeper:password_reset').to.have.deep.property ('options', {
+        algorithm: 'HS256',
+        expiresIn: '10 minutes',
+        issuer: 'gatekeeper',
+        subject: 'gatekeeper:password_reset',
+        secret: 'ssshhh'
+      });
     });
+  });
 
-    const generators = gatekeeper.tokenGenerators;
-
-    expect (generators).to.have.keys (['gatekeeper:access_token', 'gatekeeper:account_verification', 'gatekeeper:password_reset']);
-
-    expect (generators).to.have.property ('gatekeeper:access_token').to.have.deep.property ('options', {
-      algorithm: 'HS256',
-      expiresIn: '12 hours',
-      subject: 'gatekeeper:access_token',
-      issuer: 'gatekeeper',
-      secret: 'ssshhh',
+  describe ('generateToken', function () {
+    it ('should generate a token', function () {
+      return getService ().generateToken ({message: 'Hello, World!'})
+        .then (token => {
+          expect (token).to.be.a ('string');
+        });
     });
+  });
 
-    expect (generators).to.have.property ('gatekeeper:account_verification').to.have.deep.property ('options', {
-      algorithm: 'HS256',
-      expiresIn: '14 days',
-      subject: 'gatekeeper:account_verification',
-      issuer: 'gatekeeper',
-      secret: 'ssshhh'
-    });
-
-    expect (generators).to.have.property ('gatekeeper:password_reset').to.have.deep.property ('options', {
-      algorithm: 'HS256',
-      expiresIn: '10 minutes',
-      issuer: 'gatekeeper',
-      subject: 'gatekeeper:password_reset',
-      secret: 'ssshhh'
+  describe ('verifyToken', function () {
+    it ('should verify a generated token', function () {
+      const gatekeeper = getService ();
+      return gatekeeper.generateToken ({message: 'Hello, World!'})
+        .then (token => gatekeeper.verifyToken (token))
+        .then (payload => {
+          expect (payload).to.have.property ('message', 'Hello, World!');
+        });
     });
   });
 });
