@@ -46,8 +46,8 @@
   },
   "scripts": {
     "start": "node ./app.js",
-    "test": "env NODE_ENV=test mocha --recursive tests/unit-tests --reporter spec",
-    "cover": "env NODE_ENV=test istanbul cover _mocha --recursive tests/tests",
+    "test": "env NODE_ENV=test mocha tests/unit-tests  --recursive --reporter spec",
+    "cover": "env NODE_ENV=test istanbul cover _mocha tests/tests --recursive",
     "coveralls": "npm run cover -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
     "postversion": "npm publish",
     "postpublish": "git push origin master & git push origin --tags"
