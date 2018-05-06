@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-const blueprint = require ('@onehilltech/blueprint');
 const { checkSchema } = require('express-validator/check');
 
 const {
@@ -25,6 +24,7 @@ const {
   model,
   service,
   env,
+  computed
 } = require ('@onehilltech/blueprint');
 
 const Granters = require ('../../-internal/granters');
@@ -119,7 +119,7 @@ module.exports = Controller.extend ({
   _tokenGenerator: null,
 
   /// Listing of the supported grant types.
-  grantTypes: blueprint.computed ({
+  grantTypes: computed ({
     get () { return Object.keys (this.granters); }
   }),
 
