@@ -122,7 +122,7 @@ module.exports = ResourceController.extend ({
 Gatekeeper Client Libraries
 ----------------------------
 
-* [ember-cli-gatekeeeper](https://github.com/onehilltech/ember-cli-gatekeeper)
+* [ember-cli-gatekeeper](https://github.com/onehilltech/ember-cli-gatekeeper)
 
 Next Steps
 -----------
