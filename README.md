@@ -75,9 +75,8 @@ in `v1` will be accessible at `http://[hostname]/gatekeeper/`.
 
 ### Protecting routes
 
-The router definition above will expose the Gatekeeper routers at `/gatekeeper`.
-Lastly, define the routes you want to protect using the ```gatekeeper.auth.bearer```
-Blueprint policy. For example, you can protect all routes on a given path:
+The last step is to define what routes require authorization (_i.e._, are protected)
+using the `gatekeeper.auth.bearer` Blueprint policy. 
 
 ```javascript
 // app/routers/endpoint.js
@@ -97,9 +96,9 @@ module.exports = Router.extend ({
 });
 ```
 
-The router above will protect all routes under the `/v1` path, which includes all routers located
-in `app/routers/v1` directory. The client will need to define the `Authorization` header and include 
-a generated token.
+In the example above, the router will protect all routes under the `/v1` path, 
+which also includes all routers located in `app/routers/v1` directory. The client 
+will need to define the `Authorization` header and include a generated token.
 
 ### Accessing the Authorized User
 
