@@ -92,15 +92,26 @@ The router above will protect all routes under the `/v1` path, which includes al
 in `app/routers/v1` directory. The client will need to define the `Authorization` header and include 
 a generated token.
 
-### Initial setup (for production only)
+### Accessing the Authorized User
 
-Run the setup script from the project directory:
+The `req.user` property contains the account model for an authorized user accessing a 
+protected route. For example, here is an example of making the current user the owner 
+of a created resource.
 
-    ./bin/gatekeeper-setup
-    
-This will register the [gatekeeper-cli](https://github.com/onehilltech/gatekeeper-cli) 
-client, and other clients, with the server. The client registrations will be placed in 
-`.gatekeeper` under the project directory.
+```
+const { ResourceController } = require ('@onehilltech/blueprint-mongodb');
+
+module.exports = ResourceController.extend ({
+  create () {
+    return this._super (this, ...arguments).extend ({
+      prepareDocument (req, doc) {
+        doc.user = req.user._id;
+        return doc;
+      }
+    });
+  }
+});
+```
 
 Next Steps
 -----------
