@@ -99,9 +99,12 @@ protected route. For example, here is an example of making the current user the 
 of a created resource.
 
 ```javascript
+const { model } = require ('@onehilltech/blueprint');
 const { ResourceController } = require ('@onehilltech/blueprint-mongodb');
 
 module.exports = ResourceController.extend ({
+  Model: model ('tweet'),
+  
   create () {
     return this._super (this, ...arguments).extend ({
       prepareDocument (req, doc) {
