@@ -17,12 +17,10 @@ OAuth 2.0 token server and module for Blueprint.js
 Installation
 --------------
 
-    yarn add ember-cli-blueprint-helpers --dev             # temp workaround
     yarn add @onehilltech/blueprint-gatekeeper
     
 or
  
-    npm install ember-cli-blueprint-helpers --save-dev     # temp workaround
     npm install @onehilltech/blueprint-gatekeeper --save
 
 Getting Started
