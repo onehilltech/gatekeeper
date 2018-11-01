@@ -23,7 +23,6 @@ or
  
     npm install @onehilltech/blueprint-gatekeeper --save
 
-    
 Getting Started
 ----------------
 
@@ -119,6 +118,11 @@ module.exports = ResourceController.extend ({
 
 > Gatekeeper has a `UserResourceController` that automatically adds the authorized
 > user making the request as the owner of the resource being created.
+
+Gatekeeper Client Libraries
+----------------------------
+
+* [ember-cli-gatekeeeper](https://github.com/onehilltech/ember-cli-gatekeeper)
 
 Next Steps
 -----------
