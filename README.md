@@ -98,7 +98,7 @@ The `req.user` property contains the account model for an authorized user access
 protected route. For example, here is an example of making the current user the owner 
 of a created resource.
 
-```
+```javascript
 const { ResourceController } = require ('@onehilltech/blueprint-mongodb');
 
 module.exports = ResourceController.extend ({
