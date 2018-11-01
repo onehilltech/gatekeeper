@@ -48,7 +48,8 @@ module.exports = {
 };
 ```
 
-> The `jwtid` option is not supported.
+> The `jwtid` option is not supported since Gatekeeper uses it to generate a 
+> unique id for each token.
 
 ### Mount Gatekeeper router endpoint
 
