@@ -48,6 +48,8 @@ module.exports = {
 };
 ```
 
+> The `jwtid` option is not supported.
+
 ### Mount Gatekeeper router endpoint
 
 Next, we need to impor (or mount) the Gatekeeper router into our application. This
