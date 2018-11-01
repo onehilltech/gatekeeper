@@ -53,7 +53,7 @@ module.exports = {
 
 ### Mount Gatekeeper router endpoint
 
-Next, we need to impor (or mount) the Gatekeeper router into our application. This
+Next, we need to import (or mount) the Gatekeeper router into our application. This
 will expose route for managing and authenticating accounts.
 
 ```javascript
