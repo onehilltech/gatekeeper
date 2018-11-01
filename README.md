@@ -28,7 +28,9 @@ Getting Started
 
 ### Defining the configuration
 
-Define the configuration file to configure the module for your application:
+Gatekeeper uses [JSON Web Tokens](https://jwt.io/) to manage authorization of authenticated 
+users. To get started, you must first configure the options for token generation. The options
+supported are the same as those in [node-jsonwebtoken](https://github.com/auth0/node-jsonwebtoken).
 
 ```javascript
 // app/configs/gatekeeper.js
@@ -48,7 +50,8 @@ module.exports = {
 
 ### Mount Gatekeeper router endpoint
 
-Define a route (or router) to import the Gatekeeper routes into the application:
+Next, we need to impor (or mount) the Gatekeeper router into our application. This
+will expose route for managing and authenticating accounts.
 
 ```javascript
 // app/routers/endpoint.js
@@ -62,6 +65,15 @@ module.exports = Router.extend ({
   }
 });
 ```
+
+In the example above, we are mounting the `v1` router to the `/gatekeeper` endpoint.
+This means that all [routers](https://github.com/onehilltech/blueprint-gatekeeper/tree/master/app/routers/v1) 
+in `v1` will be accessible at `http://[hostname]/gatekeeper/`. This includes, but is
+not limited to:
+
+* Routes for managing clients applications
+* Routes for managing accounts
+* Routes for authenticating accounts and clients
 
 ### Protecting routes
 
