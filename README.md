@@ -54,7 +54,7 @@ module.exports = {
 ### Mount Gatekeeper router endpoint
 
 Next, we need to import (or mount) the Gatekeeper router into our application. This
-will expose route for managing and authenticating accounts.
+will expose routes for managing and authenticating accounts and clients.
 
 ```javascript
 // app/routers/endpoint.js
@@ -71,12 +71,7 @@ module.exports = Router.extend ({
 
 In the example above, we are mounting the `v1` router to the `/gatekeeper` endpoint.
 This means that all [routers](https://github.com/onehilltech/blueprint-gatekeeper/tree/master/app/routers/v1) 
-in `v1` will be accessible at `http://[hostname]/gatekeeper/`. This includes, but is
-not limited to:
-
-* Routes for managing clients applications
-* Routes for managing accounts
-* Routes for authenticating accounts and clients
+in `v1` will be accessible at `http://[hostname]/gatekeeper/`.
 
 ### Protecting routes
 
