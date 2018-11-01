@@ -94,9 +94,9 @@ a generated token.
 
 ### Accessing the Authorized User
 
-The `req.user` property contains the account model for an authorized user accessing a 
-protected route. For example, here is an example of making the current user the owner 
-of a created resource.
+The `req.user` property contains the account model for an authorized user making
+the request to access a protected route. For example, here is an example of setting
+the user making the request as the owner of a created resource.
 
 ```javascript
 const { model } = require ('@onehilltech/blueprint');
@@ -115,6 +115,9 @@ module.exports = ResourceController.extend ({
   }
 });
 ```
+
+> Gatekeeper has a `UserResourceController` that automatically adds the authorized
+> user making the request as the owner of the resource being created.
 
 Next Steps
 -----------
