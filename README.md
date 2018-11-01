@@ -108,6 +108,7 @@ module.exports = ResourceController.extend ({
   create () {
     return this._super (this, ...arguments).extend ({
       prepareDocument (req, doc) {
+        // Make the authorized user the owner of the created resource.
         doc.user = req.user._id;
         return doc;
       }
